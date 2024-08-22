@@ -1,17 +1,16 @@
 import type { Config } from 'drizzle-kit';
-import dotenv from 'dotenv';
+import Bun from 'bun';
 
-dotenv.config({
-  path: '.env.local',
-});
+const tursoDbUrl = process.env.TURSO_DATABASE_URL;
+const tursoDbToken = process.env.TURSO_AUTH_TOKEN;
 
 export default {
   schema: './src/db/schema.ts',
   driver: 'turso',
   dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.TURSO_DATABASE_URL! as string,
-    authToken: process.env.TURSO_AUTH_TOKEN! as string,
+    url: tursoDbUrl || '',
+    authToken: tursoDbToken || '',
   },
   out: './drizzle',
   verbose: true,

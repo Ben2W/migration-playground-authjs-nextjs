@@ -1,0 +1,85 @@
+import ora from 'ora';
+import chalk from 'chalk';
+import { input } from '@inquirer/prompts';
+import { z } from 'zod';
+
+const databaseSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  token: z.string(),
+});
+
+const responseSchema = z.object({
+  message: z.string(),
+  database: databaseSchema,
+});
+
+type Response = z.infer<typeof databaseSchema>;
+
+export async function createTursoDb(
+  clerkSecret?: string,
+): Promise<Response | { failed: true }> {
+  const clerkSecretKey = clerkSecret || process.env.CLERK_SECRET_KEY;
+  if (!clerkSecretKey) {
+    console.error(
+      chalk.red(
+        'Could not find Clerk secret key. Please set the CLERK_SECRET_KEY environment variable.',
+      ),
+    );
+    return { failed: true };
+  }
+
+  const dbName = await input({
+    message:
+      'Enter a name for your database (1-10 characters, lowercase letters, numbers, and hyphens only):',
+    validate: (input) => {
+      if (/^[a-z0-9-]{1,10}$/.test(input)) {
+        return true;
+      }
+      return `Invalid database name. Please use 1-10 lowercase letters, numbers, or hyphens. ${input}`;
+    },
+  });
+  const spinner = ora('Creating database...').start();
+
+  try {
+    const response = await fetch(
+      `http://localhost:8080/create-playground-turso-db`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${clerkSecretKey}`,
+        },
+        body: JSON.stringify({ name: dbName }),
+      },
+    );
+
+    if (!response.ok) {
+      spinner.fail(
+        chalk.red(
+          `HTTP error! status: ${response.status} - ${response.statusText}`,
+        ),
+      );
+      console.log(await response.text());
+      return { failed: true };
+    }
+
+    const data = responseSchema.parse(await response.json());
+
+    spinner.succeed(chalk.green(data.message));
+
+    console.log('\nHere are the following commands to manage your database:');
+    console.log('bun db:create - Create a new database');
+    console.log('bun db:push - Push schema changes to the database');
+    console.log('bun db:generate - Generate migration files');
+    console.log('bun db:studio - Open Drizzle Studio');
+    console.log('bun db:migrate - Run database migrations');
+
+    const { name, url, token } = data.database;
+
+    return { name, url, token };
+  } catch (error) {
+    spinner.fail(chalk.red(`Unable to create database ${error}`));
+    return { failed: true };
+  }
+}
