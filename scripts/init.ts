@@ -8,6 +8,10 @@ import chalk from 'chalk';
 
 init();
 
+const honoApiUrl = () => {
+  return process.env.NEXT_PUBLIC_HONO_API_URL || 'http://localhost:8080';
+};
+
 export default async function init(inputClerkSecret?: string) {
   const alreadySetup = process.env.SETUP_COMPLETE;
 
@@ -44,7 +48,7 @@ export default async function init(inputClerkSecret?: string) {
     ],
   });
   if (selection === 'create') {
-    const newDb = await createTursoDb(clerkSecret);
+    const newDb = await createTursoDb(clerkSecret, honoApiUrl());
     if ('failed' in newDb) {
       await init(clerkSecret);
       return;
@@ -120,6 +124,7 @@ async function wipeAndWriteEnv({
   ).toString('base64');
 
   const envContent = [
+    `NEXT_PUBLIC_HONO_API_URL=${honoApiUrl()}`,
     `CLERK_SECRET_KEY=${clerkSecret}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
     `TURSO_AUTH_TOKEN=${tursoDbToken}`,

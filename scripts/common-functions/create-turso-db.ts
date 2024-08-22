@@ -18,12 +18,23 @@ type Response = z.infer<typeof databaseSchema>;
 
 export async function createTursoDb(
   clerkSecret?: string,
+  honoApiUrl?: string,
 ): Promise<Response | { failed: true }> {
   const clerkSecretKey = clerkSecret || process.env.CLERK_SECRET_KEY;
   if (!clerkSecretKey) {
     console.error(
       chalk.red(
         'Could not find Clerk secret key. Please set the CLERK_SECRET_KEY environment variable.',
+      ),
+    );
+    return { failed: true };
+  }
+
+  const api = honoApiUrl || process.env.NEXT_PUBLIC_HONO_API_URL;
+  if (!api) {
+    console.error(
+      chalk.red(
+        'Could not find Hono API URL. Please set the NEXT_PUBLIC_HONO_API_URL environment variable.',
       ),
     );
     return { failed: true };
@@ -42,17 +53,14 @@ export async function createTursoDb(
   const spinner = ora('Creating database...').start();
 
   try {
-    const response = await fetch(
-      `http://localhost:8080/create-playground-turso-db`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${clerkSecretKey}`,
-        },
-        body: JSON.stringify({ name: dbName }),
+    const response = await fetch(`${api}/create-playground-turso-db`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${clerkSecretKey}`,
       },
-    );
+      body: JSON.stringify({ name: dbName }),
+    });
 
     if (!response.ok) {
       spinner.fail(
