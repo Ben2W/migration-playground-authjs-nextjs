@@ -5,6 +5,7 @@ import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 import chalk from 'chalk';
+import { z } from 'zod';
 
 init();
 
@@ -29,6 +30,15 @@ export default async function init(inputClerkSecret?: string) {
       validate: (input) =>
         input.startsWith('sk_test_') || 'Clerk secret must start with sk_test_',
     }));
+
+  const isAuthorized = await isInstanceIdAuthorized(clerkSecret);
+  if (!isAuthorized) {
+    return;
+  }
+
+  const resendEmail = await getResendEmailFrom(clerkSecret);
+
+  const resendApiKey = await getNewResendApiToken(clerkSecret);
 
   let tursoDbUrl: string | null = null;
   let tursoDbToken: string | null = null;
@@ -69,13 +79,7 @@ export default async function init(inputClerkSecret?: string) {
     });
   }
 
-  const confirmMigration = await confirm({
-    message: 'Would you like to migrate the database? (Recommended)',
-    default: true,
-  });
-  if (confirmMigration) {
-    await migrateDb({ url: tursoDbUrl, token: tursoDbToken });
-  }
+  await migrateDb({ url: tursoDbUrl, token: tursoDbToken });
 
   const spinner = ora('Testing database connection...').start();
   const client = createClient({
@@ -102,6 +106,8 @@ export default async function init(inputClerkSecret?: string) {
     clerkSecret,
     tursoDbUrl,
     tursoDbToken,
+    resendApiKey,
+    resendEmail,
   });
 
   spinner.succeed(
@@ -113,10 +119,14 @@ async function wipeAndWriteEnv({
   clerkSecret,
   tursoDbUrl,
   tursoDbToken,
+  resendApiKey,
+  resendEmail,
 }: {
   clerkSecret: string;
   tursoDbUrl: string;
   tursoDbToken: string;
+  resendApiKey: string;
+  resendEmail: string;
 }) {
   // Generate a 32-character random string for AUTH_SECRET
   const authSecret = Buffer.from(
@@ -128,8 +138,10 @@ async function wipeAndWriteEnv({
     `CLERK_SECRET_KEY=${clerkSecret}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
     `TURSO_AUTH_TOKEN=${tursoDbToken}`,
-    `SETUP_COMPLETE=true`,
+    `RESEND_API_KEY=${resendApiKey}`,
+    `RESEND_EMAIL_FROM=${resendEmail}`,
     `AUTH_SECRET=${authSecret}`,
+    `SETUP_COMPLETE=true`,
   ].join('\n');
 
   const spinner = ora('Writing environment variables to .env file').start();
@@ -146,6 +158,72 @@ async function wipeAndWriteEnv({
     spinner.fail('Failed to write to .env file:');
     console.error(error);
   }
+}
+
+async function isInstanceIdAuthorized(clerkSecret: string) {
+  const canUsePlaygroundApi = await fetch(`${honoApiUrl()}/playground`, {
+    headers: {
+      Authorization: `Bearer ${clerkSecret}`,
+    },
+  });
+
+  if (!canUsePlaygroundApi.ok) {
+    if (canUsePlaygroundApi.status === 403) {
+      const data = await canUsePlaygroundApi.json();
+      console.log(data.error);
+      return false;
+    } else {
+      console.error(
+        chalk.red(
+          `Could not access the playground API. Status: ${canUsePlaygroundApi.status}`,
+        ),
+      );
+      return false;
+    }
+  }
+  return true;
+}
+
+async function getResendEmailFrom(clerkSecret: string) {
+  const response = await fetch(`${honoApiUrl()}/playground/get-resend-from`, {
+    headers: {
+      Authorization: `Bearer ${clerkSecret}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get Resend email from: ${response.statusText}`);
+  }
+
+  const responseSchema = z.object({
+    email: z.string(),
+  });
+
+  const data = responseSchema.parse(await response.json());
+  return data.email;
+}
+
+async function getNewResendApiToken(clerkSecret: string) {
+  const response = await fetch(
+    `${honoApiUrl()}/playground/create-resend-api-key`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${clerkSecret}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to create Resend API key: ${response.statusText}`);
+  }
+  const responseSchema = z.object({
+    token: z.string(),
+  });
+
+  const data = responseSchema.parse(await response.json());
+  return data.token;
 }
 
 async function migrateDb({ url, token }: { url: string; token: string }) {

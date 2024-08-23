@@ -53,7 +53,7 @@ export async function createTursoDb(
   const spinner = ora('Creating database...').start();
 
   try {
-    const response = await fetch(`${api}/create-playground-turso-db`, {
+    const response = await fetch(`${api}/playground/create-empty-turso-db`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

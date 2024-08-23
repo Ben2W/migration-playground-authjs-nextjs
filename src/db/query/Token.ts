@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/siteUrl';
 import { db } from '..';
 import { verificationTokens, users, accounts } from '../schema';
 import {
@@ -41,9 +42,7 @@ export const createTokenForCreateUser = async (email: string) => {
 
   if (existingOAuthAccount.length > 0) {
     // Send user message to link their Oauth account to their account
-    const baseUrl = process.env.BASE_URL
-      ? `${process.env.BASE_URL}`
-      : 'http://localhost:3000';
+    const baseUrl = SITE_URL;
 
     await db
       .insert(verificationTokens)
@@ -133,9 +132,7 @@ export const createTokenForForgotPassword = async (email: string) => {
     .values({ identifier: email, token, expires })
     .returning();
 
-  const baseUrl = process.env.BASE_URL
-    ? `${process.env.BASE_URL}`
-    : 'http://localhost:3000';
+  const baseUrl = SITE_URL;
 
   let resetPasswordLink = `${baseUrl}/reset-password?token=${token}`;
 
@@ -176,9 +173,7 @@ export const createTokenForAddPassword = async (email: string) => {
     .values({ identifier: email, token, expires })
     .returning();
 
-  const baseUrl = process.env.BASE_URL
-    ? `${process.env.BASE_URL}`
-    : 'http://localhost:3000';
+  const baseUrl = SITE_URL;
 
   let addPasswordLink = `${baseUrl}/add-password?token=${token}`;
 
@@ -201,10 +196,7 @@ export const createTokenForAddAdmin = async (
   email: string,
   adminName: string,
 ) => {
-  const baseUrl = process.env.BASE_URL
-    ? `${process.env.BASE_URL}`
-    : 'http://localhost:3000';
-
+  const baseUrl = SITE_URL;
   let token = crypto.randomUUID();
   let expires = new Date();
   expires.setMinutes(expires.getMinutes() + 5);

@@ -5,14 +5,19 @@ import AddPasswordEmail from '../../emails/addPasswordEmail';
 import InviteAdmin from '../../emails/InviteAdminEmail';
 import TwoFactorEmail from '../../emails/twoFactorVerificationEmail';
 
+const resendEmail = process.env.RESEND_EMAIL_FROM;
+
 export async function sendVerificationEmail(
   email: string,
   validationCode: string,
   time: number,
 ) {
+  if (!resendEmail) {
+    throw new Error('RESEND_EMAIL_FROM is not set');
+  }
   try {
     await resend.emails.send({
-      from: 'no-reply@patelvivek.dev',
+      from: resendEmail,
       to: email,
       subject: 'Verification Code for creating a new Account',
       react: VerificationEmail({ email, validationCode: validationCode, time }),
@@ -30,9 +35,12 @@ export async function sendForgotPasswordEmail(
   resetPasswordLink: string,
   time: number,
 ) {
+  if (!resendEmail) {
+    throw new Error('RESEND_EMAIL_FROM is not set');
+  }
   try {
     await resend.emails.send({
-      from: 'no-reply@patelvivek.dev',
+      from: resendEmail,
       to: email,
       subject: 'Password Reset Request',
       react: ForgotPasswordEmail({
@@ -57,6 +65,9 @@ export async function sendAddPasswordEmail(
   addPasswordLink: string,
   time: number,
 ) {
+  if (!resendEmail) {
+    throw new Error('RESEND_EMAIL_FROM is not set');
+  }
   try {
     await resend.emails.send({
       from: 'no-reply@patelvivek.dev',
@@ -87,6 +98,9 @@ export async function sendAdminInviteEmail(
   inviteLink: string,
   time: number,
 ) {
+  if (!resendEmail) {
+    throw new Error('RESEND_EMAIL_FROM is not set');
+  }
   try {
     await resend.emails.send({
       from: 'no-reply@patelvivek.dev',
@@ -117,6 +131,9 @@ export async function sendTwoFactorVerificationEmail(
   OTP: string,
   time: number,
 ) {
+  if (!resendEmail) {
+    throw new Error('RESEND_EMAIL_FROM is not set');
+  }
   try {
     await resend.emails.send({
       from: 'no-reply@patelvivek.dev',

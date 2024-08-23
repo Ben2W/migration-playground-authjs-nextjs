@@ -21,6 +21,7 @@ import {
 } from '@/db/schema';
 import { cookies } from 'next/headers';
 import Passkey from 'next-auth/providers/passkey';
+import { SITE_URL } from './lib/siteUrl';
 
 class InvalidCredentialsError extends AuthError {
   code = 'invalid-credentials';
@@ -47,7 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       getRelayingParty: () => ({
         id: process.env.BASE_ID ? process.env.BASE_ID : '',
         name: 'AuthJs Template',
-        origin: process.env.BASE_URL ? process.env.BASE_URL : '',
+        origin: SITE_URL,
       }),
     }),
     Google({

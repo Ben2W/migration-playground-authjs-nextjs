@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/siteUrl';
 import {
   Body,
   Button,
@@ -21,9 +22,7 @@ interface InviteAdminProps {
   time?: number;
 }
 
-const baseUrl = process.env.BASE_URL
-  ? `${process.env.BASE_URL}`
-  : 'http://localhost:3000';
+const baseUrl = SITE_URL;
 
 export const InviteAdmin = ({
   adminName,
