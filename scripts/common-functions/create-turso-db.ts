@@ -40,16 +40,6 @@ export async function createTursoDb(
     return { failed: true };
   }
 
-  const dbName = await input({
-    message:
-      'Enter a name for your database (1-10 characters, lowercase letters, numbers, and hyphens only):',
-    validate: (input) => {
-      if (/^[a-z0-9-]{1,10}$/.test(input)) {
-        return true;
-      }
-      return `Invalid database name. Please use 1-10 lowercase letters, numbers, or hyphens. ${input}`;
-    },
-  });
   const spinner = ora('Creating database...').start();
 
   try {
@@ -59,7 +49,6 @@ export async function createTursoDb(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${clerkSecretKey}`,
       },
-      body: JSON.stringify({ name: dbName }),
     });
 
     if (!response.ok) {
