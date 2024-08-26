@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GithubSignIn, GoogleSignIn } from '@/components/AuthButton';
+import { GithubSignIn } from '@/components/AuthButton';
 import SignUpForm from './SignUpForm';
 import type { Metadata } from 'next';
 import RadialGradient from '@/components/ui/radial-gradient';
@@ -10,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function SignUp() {
+  const hasGithubConfigured =
+    process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET ? true : false;
   return (
     <div className='mx-auto flex min-h-screen flex-col items-center justify-center'>
       <div className='m-4 mx-auto flex flex-col gap-2 rounded-lg p-8 shadow-lg shadow-black dark:shadow-white'>
@@ -22,16 +24,21 @@ export default function SignUp() {
           </p>
         </div>
         <SignUpForm />
-        <div className='relative m-4'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
-          </div>
-          <div className='relative flex justify-center text-base uppercase'>
-            <span className='bg-neutral-100 px-4 dark:bg-neutral-900'>Or</span>
-          </div>
-        </div>
-        <GithubSignIn />
-        <GoogleSignIn />
+        {hasGithubConfigured && (
+          <>
+            <div className='relative m-4'>
+              <div className='absolute inset-0 flex items-center'>
+                <span className='w-full border-t' />
+              </div>
+              <div className='relative flex justify-center text-base uppercase'>
+                <span className='bg-neutral-100 px-4 dark:bg-neutral-900'>
+                  Or
+                </span>
+              </div>
+            </div>
+            <GithubSignIn />
+          </>
+        )}
         <div className='mt-6 flex items-center justify-between'>
           <div className='text-sm text-gray-500 dark:text-gray-400'>
             Already have an account ?{' '}

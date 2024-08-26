@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import SignInForm from './SignInForm';
-import { GithubSignIn, GoogleSignIn } from '@/components/AuthButton';
+import { GithubSignIn } from '@/components/AuthButton';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import type { Metadata } from 'next';
@@ -28,6 +28,8 @@ export default async function SignIn({
   if (user) {
     redirect('/profile');
   }
+  const hasGithubConfigured =
+    process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET ? true : false;
   return (
     <div className='mx-auto flex min-h-screen flex-col items-center justify-center'>
       <div className='mx-auto flex flex-col gap-2 rounded-lg p-8 shadow-lg shadow-black dark:shadow-white'>
@@ -37,18 +39,22 @@ export default async function SignIn({
           </h1>
         </div>
         <SignInForm />
-        <div className='relative m-4'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
-          </div>
-          <div className='relative flex justify-center text-base uppercase'>
-            <span className='bg-neutral-100 px-4 dark:bg-neutral-900'>Or</span>
-          </div>
-        </div>
-        <WebAuthnLogin />
+        {hasGithubConfigured && (
+          <>
+            <div className='relative m-4'>
+              <div className='absolute inset-0 flex items-center'>
+                <span className='w-full border-t' />
+              </div>
+              <div className='relative flex justify-center text-base uppercase'>
+                <span className='bg-neutral-100 px-4 dark:bg-neutral-900'>
+                  Or
+                </span>
+              </div>
+            </div>
+            <GithubSignIn />
+          </>
+        )}
 
-        <GithubSignIn />
-        <GoogleSignIn />
         <div className='mt-6 flex items-center justify-between'>
           <div className='text-sm text-gray-500 dark:text-gray-400'>
             Don&rsquo;t have an account ?{' '}

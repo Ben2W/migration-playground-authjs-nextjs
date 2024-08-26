@@ -16,16 +16,3 @@ export function WebAuthnRegister() {
     </Button>
   );
 }
-
-export function WebAuthnLogin() {
-  return (
-    <Button
-      onClick={() => signIn('passkey')}
-      className='w-full'
-      variant='outline'
-    >
-      <Icons.passkey className='mr-2 h-4 w-4' />
-      Sign in with Passkey
-    </Button>
-  );
-}
