@@ -90,24 +90,6 @@ export default async function Dashboard() {
             <div className='flex flex-col space-y-4'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center space-x-4'>
-                  <Icons.google className='mr-2 h-6 w-6' />
-                  <div>
-                    <h3 className='text-lg font-medium'>Google</h3>
-                    <p className='text-gray-500 dark:text-gray-400'>
-                      {accounts?.includes('google')
-                        ? 'Connected'
-                        : 'Not Connected'}
-                    </p>
-                  </div>
-                </div>
-                {accounts?.includes('google') ? (
-                  <UnlinkAccountButton userId={user?.id!} provider='google' />
-                ) : (
-                  <LinkAccountButton provider='google' />
-                )}
-              </div>
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center space-x-4'>
                   <Icons.gitHub className='mr-2 h-6 w-6' />
                   <div>
                     <h3 className='text-lg font-medium'>GitHub</h3>

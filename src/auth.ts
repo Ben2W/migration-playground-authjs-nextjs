@@ -1,5 +1,4 @@
 import NextAuth, { AuthError } from 'next-auth';
-import Google from 'next-auth/providers/google';
 import Github from 'next-auth/providers/github';
 import Credentials from 'next-auth/providers/credentials';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
@@ -50,19 +49,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: 'AuthJs Template',
         origin: SITE_URL,
       }),
-    }),
-    Google({
-      async profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-          username: profile.email,
-          role: profile.email.endsWith('@patelvivek.dev') ? 'ADMIN' : 'USER',
-        };
-      },
-      allowDangerousEmailAccountLinking: true,
     }),
     Github({
       async profile(profile) {
