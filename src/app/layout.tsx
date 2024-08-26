@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter } from 'next/font/google';
 import { Rubik } from 'next/font/google';
-
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
   description: 'A starter authentication template for Next.js',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -45,8 +44,7 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange
         >
-          <Navbar />
-          {children}
+          <Navbar>{children}</Navbar>
           <Toaster position='top-center' />
           <ThemeToggle />
         </ThemeProvider>

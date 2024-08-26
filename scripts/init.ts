@@ -31,10 +31,7 @@ export default async function init(inputClerkSecret?: string) {
         input.startsWith('sk_test_') || 'Clerk secret must start with sk_test_',
     }));
 
-  const isAuthorized = await isInstanceIdAuthorized(clerkSecret);
-  if (!isAuthorized) {
-    return;
-  }
+  await ensureInstanceIdAuthorized(clerkSecret);
 
   const resendEmail = await getResendEmailFrom(clerkSecret);
 
@@ -160,7 +157,7 @@ async function wipeAndWriteEnv({
   }
 }
 
-async function isInstanceIdAuthorized(clerkSecret: string) {
+async function ensureInstanceIdAuthorized(clerkSecret: string) {
   const canUsePlaygroundApi = await fetch(`${honoApiUrl()}/playground`, {
     headers: {
       Authorization: `Bearer ${clerkSecret}`,
@@ -170,18 +167,13 @@ async function isInstanceIdAuthorized(clerkSecret: string) {
   if (!canUsePlaygroundApi.ok) {
     if (canUsePlaygroundApi.status === 403) {
       const data = await canUsePlaygroundApi.json();
-      console.log(data.error);
-      return false;
+      throw new Error(data.error);
     } else {
-      console.error(
-        chalk.red(
-          `Could not access the playground API. Status: ${canUsePlaygroundApi.status}`,
-        ),
+      throw new Error(
+        `Could not access the playground API. Status: ${canUsePlaygroundApi.status}`,
       );
-      return false;
     }
   }
-  return true;
 }
 
 async function getResendEmailFrom(clerkSecret: string) {
