@@ -44,43 +44,6 @@ export function GithubSignIn() {
   );
 }
 
-export function GoogleSignIn() {
-  return (
-    <form
-      className='w-full'
-      action={async () => {
-        'use server';
-        await signIn('google', {
-          redirectTo: '/profile',
-          redirect: true,
-          callbackUrl: '/',
-        });
-      }}
-    >
-      <Button className='w-full' variant='outline'>
-        <Icons.google className='mr-2 h-4 w-4' />
-        Sign in with Google
-      </Button>
-    </form>
-  );
-}
-
-export function WebAuthIn() {
-  return (
-    <form
-      className='w-full'
-      action={async () => {
-        'use server';
-        await signIn('passkey', { action: 'register' });
-      }}
-    >
-      <Button className='w-full' variant='outline'>
-        Register new Passkey
-      </Button>
-    </form>
-  );
-}
-
 export function SignOut() {
   unstable_noStore();
   return (

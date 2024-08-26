@@ -21,7 +21,6 @@ import AddPasswordButton from './_Components/AddPasswordButton';
 import { User as DefaultUser } from 'next-auth';
 
 import type { Metadata } from 'next';
-import { WebAuthnRegister } from '@/components/WebAuthnButton';
 import DisableTwoFactorButton from './_Components/DisableTwoFactorButton';
 
 export async function generateMetadata(): Promise<Metadata | undefined> {
@@ -56,6 +55,23 @@ export default async function Dashboard() {
   }
 
   let accounts = userData.accounts.map((account) => account.provider);
+
+  const GithubLinkButton = () => {
+    if (accounts?.includes('github')) {
+      return <UnlinkAccountButton userId={user?.id!} provider='github' />;
+    }
+
+    if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+      return <LinkAccountButton provider='github' />;
+    }
+
+    return (
+      <Button variant={'outline'} disabled>
+        Not Available
+      </Button>
+    );
+  };
+
   return (
     <div className='container mx-auto px-8 py-12'>
       <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
@@ -100,11 +116,7 @@ export default async function Dashboard() {
                     </p>
                   </div>
                 </div>
-                {accounts?.includes('github') ? (
-                  <UnlinkAccountButton userId={user?.id!} provider='github' />
-                ) : (
-                  <LinkAccountButton provider='github' />
-                )}
+                <GithubLinkButton />
               </div>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center space-x-4'>
@@ -123,9 +135,6 @@ export default async function Dashboard() {
                     <Button size='sm'>Enable 2FA</Button>
                   </Link>
                 )}
-              </div>
-              <div>
-                <WebAuthnRegister />
               </div>
               <div className='mt-8 flex flex-col justify-center gap-4 border-t-4 pt-8 sm:flex-row'>
                 {accounts?.includes('email') ? (
