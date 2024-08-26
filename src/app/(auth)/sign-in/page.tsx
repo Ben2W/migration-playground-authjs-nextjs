@@ -4,7 +4,6 @@ import { GithubSignIn } from '@/components/AuthButton';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import type { Metadata } from 'next';
-import { WebAuthnLogin } from '@/components/WebAuthnButton';
 import RadialGradient from '@/components/ui/radial-gradient';
 
 export const metadata: Metadata = {
