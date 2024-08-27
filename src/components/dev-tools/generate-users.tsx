@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { generateUsers } from '@/actions/dev-tools/generate-users';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function GenerateUsers() {
   const [count, setCount] = useState(1000);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-
+  const queryClient = useQueryClient();
   const handleGenerate = async () => {
     setIsGenerating(true);
     setProgress(0);
@@ -41,6 +42,8 @@ export default function GenerateUsers() {
         title: 'Success',
         description: `Generated ${generatedCount} users`,
       });
+      // Invalidate the useQuery that counts users
+      queryClient.invalidateQueries({ queryKey: ['totalUsers'] });
     }
   };
 

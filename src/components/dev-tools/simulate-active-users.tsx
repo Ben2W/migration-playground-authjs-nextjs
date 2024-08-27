@@ -1,0 +1,88 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Loader } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getTotalUsers } from '@/actions/dev-tools/get-total-users';
+
+// Client-side wrapper function
+const fetchTotalUsers = async () => {
+  return await getTotalUsers();
+};
+
+export default function SimulateActiveUsers() {
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  const { data: totalUsers, isLoading: isTotalUsersLoading } = useQuery({
+    queryKey: ['totalUsers'],
+    queryFn: fetchTotalUsers,
+  });
+
+  // New query for simulation
+  const { data: simulationData } = useQuery({
+    queryKey: ['simulateActiveUsers'],
+    queryFn: async () => {
+      if (isSimulating) {
+        console.log(`Simulating ${activeUsers} active users...`);
+      }
+      return null;
+    },
+    refetchInterval: isSimulating ? 5000 : false,
+    enabled: isSimulating,
+  });
+
+  const handleSimulate = async () => {
+    setIsSimulating(true);
+  };
+
+  const handleCancel = () => {
+    setIsSimulating(false);
+  };
+
+  if (isTotalUsersLoading) {
+    return <Loader />;
+  }
+
+  if (!totalUsers) {
+    return <div>No users found</div>;
+  }
+
+  return (
+    <div className='w-full space-y-4'>
+      <h2 className='text-lg font-semibold'>
+        {isSimulating ? (
+          <div className='flex items-center'>
+            <Loader className='mr-2 h-4 w-4 animate-spin' />
+            <span>Simulating Active Users (total users: {totalUsers})</span>
+          </div>
+        ) : (
+          <>Simulate Active Users (total users: {totalUsers})</>
+        )}
+      </h2>
+      <Slider
+        min={0}
+        max={totalUsers}
+        step={1}
+        value={[activeUsers]}
+        onValueChange={(value: number[]) => setActiveUsers(value[0])}
+      />
+      <div className='flex items-center justify-between'>
+        <span>{activeUsers} users selected</span>
+        <Button
+          onClick={isSimulating ? handleCancel : handleSimulate}
+          disabled={activeUsers === 0}
+          variant={isSimulating ? 'destructive' : 'default'}
+        >
+          {isSimulating ? (
+            <>Cancel Active User Simulation</>
+          ) : (
+            `Simulate ${activeUsers} Active Users`
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}

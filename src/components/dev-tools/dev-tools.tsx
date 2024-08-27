@@ -2,6 +2,7 @@ import GenerateLoginUser from './generate-login-user';
 import GenerateUsers from './generate-users';
 import DevToolsLinks from './links';
 import { Separator } from '@/components/ui/separator';
+import SimulateActiveUsers from './simulate-active-users';
 export default function DevTools() {
   return (
     <div className='p-4'>
@@ -12,6 +13,8 @@ export default function DevTools() {
       <GenerateUsers />
       <Separator className='my-4' />
       <GenerateLoginUser />
+      <Separator className='my-4' />
+      <SimulateActiveUsers />
     </div>
   );
 }

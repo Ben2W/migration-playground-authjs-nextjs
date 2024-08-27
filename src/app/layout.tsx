@@ -2,13 +2,13 @@ import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from 'react-hot-toast';
 import { Toaster as ShadToast } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter } from 'next/font/google';
 import { Rubik } from 'next/font/google';
+import ReactQueryProvider from '@/components/ReactQueryProvider';
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -39,17 +39,18 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem={true}
-          disableTransitionOnChange
-        >
-          <Navbar>{children}</Navbar>
-          <Toaster position='top-center' />
-          <ShadToast />
-          <ThemeToggle />
-        </ThemeProvider>
+        <ReactQueryProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem={true}
+            disableTransitionOnChange
+          >
+            <Navbar>{children}</Navbar>
+            <Toaster position='top-center' />
+            <ShadToast />
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

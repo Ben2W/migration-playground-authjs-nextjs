@@ -6,6 +6,7 @@ import { SignOut } from './AuthButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { unstable_noStore } from 'next/cache';
 import ResizableWindows from './dev-tools/resizable-window';
+import { ThemeToggle } from './ThemeToggle';
 
 export default async function Navbar({
   children,
@@ -21,6 +22,7 @@ export default async function Navbar({
       <header className='sticky top-0 z-50 border-b bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-800'>
         <div className='mx-auto flex items-center justify-between'>
           <div className='flex items-center'>
+            <ThemeToggle />
             <span>AuthJs to Clerk Playground </span>
             <Link
               href='https://github.com/SpartanFA/migration-playground-authjs-nextjs'

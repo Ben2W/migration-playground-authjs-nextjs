@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { generateLoginUser } from '@/actions/dev-tools/generate-users';
 import CopyableClipboard from '@/components/copy-text';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function GenerateLoginUser() {
   const [credentials, setCredentials] = useState<{
@@ -12,6 +13,7 @@ export default function GenerateLoginUser() {
     password: string;
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -22,6 +24,7 @@ export default function GenerateLoginUser() {
         title: 'Success',
         description: 'Login user generated successfully',
       });
+      queryClient.invalidateQueries({ queryKey: ['totalUsers'] });
     } catch (error) {
       console.error('Error generating login user:', error);
       toast({
