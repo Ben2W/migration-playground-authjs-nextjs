@@ -1,13 +1,17 @@
+import GenerateLoginUser from './generate-login-user';
 import GenerateUsers from './generate-users';
 import DevToolsLinks from './links';
-
+import { Separator } from '@/components/ui/separator';
 export default function DevTools() {
   return (
-    <div className='mt-4'>
+    <div className='p-4'>
       Note: Delete your .env to trigger the setup cli.
       <div className='mb-4 text-lg font-bold'>Dev Tools</div>
       <DevToolsLinks />
+      <Separator className='my-4' />
       <GenerateUsers />
+      <Separator className='my-4' />
+      <GenerateLoginUser />
     </div>
   );
 }
