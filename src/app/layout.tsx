@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from 'react-hot-toast';
+import { Toaster as ShadToast } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter } from 'next/font/google';
@@ -46,6 +47,7 @@ export default async function RootLayout({
         >
           <Navbar>{children}</Navbar>
           <Toaster position='top-center' />
+          <ShadToast />
           <ThemeToggle />
         </ThemeProvider>
       </body>
