@@ -1,6 +1,5 @@
 import ora from 'ora';
-import { input, select, confirm } from '@inquirer/prompts';
-import { createTursoDb } from './common-functions/create-turso-db';
+import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { migrate } from 'drizzle-orm/libsql/migrator';
@@ -37,67 +36,19 @@ export default async function init(inputClerkSecret?: string) {
 
   const resendApiKey = await getNewResendApiToken(clerkSecret);
 
-  let tursoDbUrl: string | null = null;
-  let tursoDbToken: string | null = null;
+  let tursoDbUrl: string | undefined = 'file:dev.db';
+  let tursoDbToken: string | undefined = undefined;
 
-  const selection = await select({
-    message:
-      'You need a libSQL database. Would you like us to give you one, or would you like to use your own?',
-    choices: [
-      {
-        name: 'Create one for me',
-        value: 'create',
-      },
-      {
-        name: 'Use my own',
-        value: 'use',
-      },
-    ],
-  });
-  if (selection === 'create') {
-    const newDb = await createTursoDb(clerkSecret, honoApiUrl());
-    if ('failed' in newDb) {
-      await init(clerkSecret);
-      return;
-    }
-    tursoDbUrl = newDb.url;
-    tursoDbToken = newDb.token;
-  } else {
-    console.log('You can create a libSQL database here: https://turso.tech');
-    tursoDbUrl = await input({
-      message: 'Enter your Turso database URL:',
-      validate: (input) =>
-        input.length > 0 || 'Turso database URL cannot be empty',
-    });
-    tursoDbToken = await input({
-      message: 'Enter your Turso database token:',
-      validate: (input) =>
-        input.length > 0 || 'Turso database token cannot be empty',
-    });
-  }
-
-  await migrateDb({ url: tursoDbUrl, token: tursoDbToken });
-
-  const spinner = ora('Testing database connection...').start();
   const client = createClient({
     url: tursoDbUrl,
     authToken: tursoDbToken,
   });
+  const spinner = ora('Setting up database...').start();
 
-  let success = false;
-  try {
-    await client.execute({ sql: 'SELECT 1', args: [] });
-    spinner.succeed(
-      'Database connection test successful - the database is online!',
-    );
-    success = true;
-  } catch (error) {
-    spinner.fail('Failed to connect to the database. Please try again.');
-  }
+  const db = drizzle(client);
+  await migrate(db, { migrationsFolder: './drizzle' });
 
-  if (!success) {
-    await init();
-  }
+  spinner.succeed('Database migrated successfully');
 
   let githubId: string | null = null;
   let githubToken: string | null = null;
@@ -162,7 +113,7 @@ async function wipeAndWriteEnv({
 }: {
   clerkSecret: string;
   tursoDbUrl: string;
-  tursoDbToken: string;
+  tursoDbToken: string | undefined;
   resendApiKey: string;
   resendEmail: string;
   githubId: string | null;
@@ -177,7 +128,7 @@ async function wipeAndWriteEnv({
     `NEXT_PUBLIC_HONO_API_URL=${honoApiUrl()}`,
     `CLERK_SECRET_KEY=${clerkSecret}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
-    `TURSO_AUTH_TOKEN=${tursoDbToken}`,
+    `${tursoDbToken ? `TURSO_AUTH_TOKEN=${tursoDbToken}` : '# TURSO_AUTH_TOKEN='}`,
     `RESEND_API_KEY=${resendApiKey}`,
     `RESEND_EMAIL_FROM=${resendEmail}`,
     `AUTH_SECRET=${authSecret}`,
@@ -261,23 +212,4 @@ async function getNewResendApiToken(clerkSecret: string) {
 
   const data = responseSchema.parse(await response.json());
   return data.token;
-}
-
-async function migrateDb({ url, token }: { url: string; token: string }) {
-  const spinner = ora('Migrating database...').start();
-
-  const client = createClient({
-    url: url,
-    authToken: token,
-  });
-
-  const db = drizzle(client);
-
-  try {
-    await migrate(db, { migrationsFolder: './drizzle' });
-    spinner.succeed('Database migrated successfully');
-  } catch (error) {
-    spinner.fail('Failed to migrate database');
-    console.error(error);
-  }
 }

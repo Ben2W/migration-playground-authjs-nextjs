@@ -1,5 +1,4 @@
 import type { Config } from 'drizzle-kit';
-import Bun from 'bun';
 
 const tursoDbUrl = process.env.TURSO_DATABASE_URL;
 const tursoDbToken = process.env.TURSO_AUTH_TOKEN;
@@ -10,7 +9,7 @@ export default {
   dialect: 'sqlite',
   dbCredentials: {
     url: tursoDbUrl || '',
-    authToken: tursoDbToken || '',
+    authToken: tursoDbToken,
   },
   out: './drizzle',
   verbose: true,
