@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Loader } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalUsers } from '@/actions/dev-tools/get-total-users';
+import { simulateActiveUsers } from '@/actions/dev-tools/simulate-active-users';
+import { toast } from '@/components/ui/use-toast';
 
 // Client-side wrapper function
 const fetchTotalUsers = async () => {
@@ -22,14 +24,24 @@ export default function SimulateActiveUsers() {
   });
 
   // New query for simulation
-  const { data: simulationData } = useQuery({
+  useQuery({
     queryKey: ['simulateActiveUsers'],
     queryFn: async () => {
-      if (isSimulating) {
-        console.log(`Simulating ${activeUsers} active users...`);
+      const { count, error } = await simulateActiveUsers(activeUsers);
+      if (error) {
+        toast({
+          title: 'Simulation Error',
+          description: `Updated ${count} active users. But got error: ${error}`,
+        });
+      } else {
+        toast({
+          title: 'Simulation Success',
+          description: `${count} active users simulated`,
+        });
       }
-      return null;
+      return count;
     },
+
     refetchInterval: isSimulating ? 5000 : false,
     enabled: isSimulating,
   });
