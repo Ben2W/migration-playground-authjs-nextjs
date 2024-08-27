@@ -99,12 +99,51 @@ export default async function init(inputClerkSecret?: string) {
     await init();
   }
 
+  let githubId: string | null = null;
+  let githubToken: string | null = null;
+
+  if (
+    await confirm({
+      message: 'Do you want to connect GitHub for github OAuth?',
+    })
+  ) {
+    console.log(
+      `Create an OAuth app here: ${chalk.cyan(
+        'https://github.com/settings/applications/new',
+      )}`,
+    );
+
+    console.log(
+      `Use this Homepage URL: ${chalk.cyan('http://localhost:3005')}`,
+    );
+
+    console.log(
+      `Use this callback URL: ${chalk.cyan(
+        'http://localhost:3005/api/auth/callback/github',
+      )}`,
+    );
+
+    githubId = await input({
+      message: 'Enter your GitHub Client ID:',
+      validate: (input) =>
+        input.length > 0 || 'GitHub Client ID cannot be empty',
+    });
+
+    githubToken = await input({
+      message: 'Enter your GitHub Client Secret:',
+      validate: (input) =>
+        input.length > 0 || 'GitHub Client Secret cannot be empty',
+    });
+  }
+
   await wipeAndWriteEnv({
     clerkSecret,
     tursoDbUrl,
     tursoDbToken,
     resendApiKey,
     resendEmail,
+    githubId,
+    githubToken,
   });
 
   spinner.succeed(
@@ -118,12 +157,16 @@ async function wipeAndWriteEnv({
   tursoDbToken,
   resendApiKey,
   resendEmail,
+  githubId,
+  githubToken,
 }: {
   clerkSecret: string;
   tursoDbUrl: string;
   tursoDbToken: string;
   resendApiKey: string;
   resendEmail: string;
+  githubId: string | null;
+  githubToken: string | null;
 }) {
   // Generate a 32-character random string for AUTH_SECRET
   const authSecret = Buffer.from(
@@ -138,6 +181,8 @@ async function wipeAndWriteEnv({
     `RESEND_API_KEY=${resendApiKey}`,
     `RESEND_EMAIL_FROM=${resendEmail}`,
     `AUTH_SECRET=${authSecret}`,
+    `AUTH_GITHUB_ID=${githubId}`,
+    `AUTH_GITHUB_SECRET=${githubToken}`,
     `SETUP_COMPLETE=true`,
   ].join('\n');
 

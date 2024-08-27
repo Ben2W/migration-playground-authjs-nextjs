@@ -61,7 +61,7 @@ export default async function Dashboard() {
       return <UnlinkAccountButton userId={user?.id!} provider='github' />;
     }
 
-    if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
       return <LinkAccountButton provider='github' />;
     }
 
