@@ -9,7 +9,7 @@ import { z } from 'zod';
 init();
 
 const honoApiUrl = () => {
-  return process.env.NEXT_PUBLIC_HONO_API_URL || 'http://localhost:8080';
+  return process.env.NEXT_PUBLIC_HONO_API_URL || 'https://api.clerk-dev.com';
 };
 
 export default async function init(inputClerkSecret?: string) {
@@ -154,11 +154,14 @@ async function wipeAndWriteEnv({
 }
 
 async function ensureInstanceIdAuthorized(clerkSecret: string) {
-  const canUsePlaygroundApi = await fetch(`${honoApiUrl()}/playground`, {
-    headers: {
-      Authorization: `Bearer ${clerkSecret}`,
+  const canUsePlaygroundApi = await fetch(
+    `${honoApiUrl()}/migrations/playground`,
+    {
+      headers: {
+        Authorization: `Bearer ${clerkSecret}`,
+      },
     },
-  });
+  );
 
   if (!canUsePlaygroundApi.ok) {
     if (canUsePlaygroundApi.status === 403) {
@@ -173,11 +176,14 @@ async function ensureInstanceIdAuthorized(clerkSecret: string) {
 }
 
 async function getResendEmailFrom(clerkSecret: string) {
-  const response = await fetch(`${honoApiUrl()}/playground/get-resend-from`, {
-    headers: {
-      Authorization: `Bearer ${clerkSecret}`,
+  const response = await fetch(
+    `${honoApiUrl()}/migrations/playground/get-resend-from`,
+    {
+      headers: {
+        Authorization: `Bearer ${clerkSecret}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to get Resend email from: ${response.statusText}`);
@@ -193,7 +199,7 @@ async function getResendEmailFrom(clerkSecret: string) {
 
 async function getNewResendApiToken(clerkSecret: string) {
   const response = await fetch(
-    `${honoApiUrl()}/playground/create-resend-api-key`,
+    `${honoApiUrl()}/migrations/playground/create-resend-api-key`,
     {
       method: 'POST',
       headers: {

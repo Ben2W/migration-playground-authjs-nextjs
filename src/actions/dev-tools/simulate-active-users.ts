@@ -38,14 +38,17 @@ export async function simulateActiveUsers(
 
       // Call the API for each user in this batch
       const promises = selectedUsers.map(async (user) => {
-        const response = await fetch(`${HONO_API_URL}/add-active-user`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${CLERK_SECRET_KEY}`,
+        const response = await fetch(
+          `${HONO_API_URL}/migrations/add-active-user`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${CLERK_SECRET_KEY}`,
+            },
+            body: JSON.stringify({ external_id: user.email }),
           },
-          body: JSON.stringify({ external_id: user.email }),
-        });
+        );
 
         if (!response.ok) {
           throw new Error(
