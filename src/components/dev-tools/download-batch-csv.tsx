@@ -20,7 +20,7 @@ export default function DownloadBatchCSV() {
           browser)
         </p>
         <CopyableClipboard
-          textToCopy='select id as external_id from user;'
+          textToCopy='select id as external_id from user limit 1000;'
           isCode={true}
         />
       </div>

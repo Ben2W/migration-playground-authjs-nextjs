@@ -22,7 +22,7 @@ export async function simulateActiveUsers(
       );
     }
 
-    const batchSize = 200;
+    const batchSize = 1000;
     let cursor = 0;
 
     while (cursor < count) {
@@ -30,35 +30,30 @@ export async function simulateActiveUsers(
 
       // Fetch users from the database using a cursor
       const selectedUsers = await db
-        .select({ email: users.email })
+        .select({ id: users.id })
         .from(users)
         .orderBy(users.id)
         .limit(limit)
         .offset(cursor);
 
       // Call the API for each user in this batch
-      const promises = selectedUsers.map(async (user) => {
-        const response = await fetch(
-          `${HONO_API_URL}/migrations/add-active-user`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${CLERK_SECRET_KEY}`,
-            },
-            body: JSON.stringify({ external_id: user.email }),
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to add active user: ${user.email}. Status: ${response.status}: ${response.statusText}`,
-          );
-        }
+      const response = await fetch(`${HONO_API_URL}/migrations/batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${CLERK_SECRET_KEY}`,
+        },
+        body: JSON.stringify({
+          external_ids: selectedUsers.map((user) => user.id),
+          as_active: true,
+        }),
       });
 
-      // Wait for all API calls in this batch to complete
-      await Promise.all(promises);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to add ${selectedUsers.length} active users. Status: ${response.status}: ${response.statusText}`,
+        );
+      }
 
       totalCount += selectedUsers.length;
 

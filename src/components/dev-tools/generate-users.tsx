@@ -21,6 +21,7 @@ export default function GenerateUsers() {
     for (let i = 0; i < totalBatches; i++) {
       const batchSize = Math.min(1000, count - generatedCount);
       const result = await generateUsers(batchSize);
+      queryClient.invalidateQueries({ queryKey: ['totalUsers'] });
 
       if (result.success) {
         generatedCount += result.count;
@@ -42,8 +43,6 @@ export default function GenerateUsers() {
         title: 'Success',
         description: `Generated ${generatedCount} users`,
       });
-      // Invalidate the useQuery that counts users
-      queryClient.invalidateQueries({ queryKey: ['totalUsers'] });
     }
   };
 
