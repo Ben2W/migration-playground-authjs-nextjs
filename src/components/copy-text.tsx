@@ -33,11 +33,11 @@ export default function CopyableClipboard({
       <div className='relative'>
         <div
           className={cn(
-            'break-all pr-10',
+            'min-h-[1.5em] break-all pr-10',
             isCode && 'rounded bg-secondary p-2 font-mono',
           )}
         >
-          {textToCopy}
+          {textToCopy || '\u00A0'}
         </div>
         <Button
           variant='outline'

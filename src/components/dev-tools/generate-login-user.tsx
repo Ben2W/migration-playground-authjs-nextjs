@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { generateLoginUser } from '@/actions/dev-tools/generate-users';
 import CopyableClipboard from '@/components/copy-text';
 import { useQueryClient } from '@tanstack/react-query';
+import useTotalUsers from './useTotalUsers';
 
 export default function GenerateLoginUser() {
   const [credentials, setCredentials] = useState<{
@@ -14,6 +15,21 @@ export default function GenerateLoginUser() {
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const queryClient = useQueryClient();
+  const previousTotalUsersRef = useRef<number | undefined>(undefined);
+
+  const { data: totalUsers } = useTotalUsers();
+
+  useEffect(() => {
+    if (typeof totalUsers === 'number') {
+      if (
+        typeof previousTotalUsersRef.current === 'number' &&
+        totalUsers < previousTotalUsersRef.current
+      ) {
+        setCredentials(null);
+      }
+      previousTotalUsersRef.current = totalUsers;
+    }
+  }, [totalUsers]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -44,18 +60,16 @@ export default function GenerateLoginUser() {
           {isGenerating ? 'Generating...' : 'Generate Login User'}
         </Button>
       </div>
-      {credentials && (
-        <div className='space-y-4'>
-          <div>
-            <div className='mb-1 font-semibold'>Username:</div>
-            <CopyableClipboard textToCopy={credentials.username} />
-          </div>
-          <div>
-            <div className='mb-1 font-semibold'>Password:</div>
-            <CopyableClipboard textToCopy={credentials.password} />
-          </div>
+      <div className='space-y-4'>
+        <div>
+          <div className='mb-1 font-semibold'>Username:</div>
+          <CopyableClipboard textToCopy={credentials?.username ?? ''} />
         </div>
-      )}
+        <div>
+          <div className='mb-1 font-semibold'>Password:</div>
+          <CopyableClipboard textToCopy={credentials?.password ?? ''} />
+        </div>
+      </div>
     </div>
   );
 }

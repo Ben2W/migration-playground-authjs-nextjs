@@ -30,7 +30,7 @@ export default async function init(inputClerkSecret?: string) {
         input.startsWith('sk_test_') || 'Clerk secret must start with sk_test_',
     }));
 
-  await ensureInstanceIdAuthorized(clerkSecret);
+  const instanceId = await ensureInstanceIdAuthorized(clerkSecret);
 
   const resendEmail = await getResendEmailFrom(clerkSecret);
 
@@ -89,6 +89,7 @@ export default async function init(inputClerkSecret?: string) {
 
   await wipeAndWriteEnv({
     clerkSecret,
+    instanceId,
     tursoDbUrl,
     tursoDbToken,
     resendApiKey,
@@ -104,6 +105,7 @@ export default async function init(inputClerkSecret?: string) {
 
 async function wipeAndWriteEnv({
   clerkSecret,
+  instanceId,
   tursoDbUrl,
   tursoDbToken,
   resendApiKey,
@@ -112,6 +114,7 @@ async function wipeAndWriteEnv({
   githubToken,
 }: {
   clerkSecret: string;
+  instanceId: string;
   tursoDbUrl: string;
   tursoDbToken: string | undefined;
   resendApiKey: string;
@@ -127,13 +130,14 @@ async function wipeAndWriteEnv({
   const envContent = [
     `NEXT_PUBLIC_HONO_API_URL=${honoApiUrl()}`,
     `CLERK_SECRET_KEY=${clerkSecret}`,
+    `NEXT_PUBLIC_CLERK_INSTANCE_ID=${instanceId}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
     `${tursoDbToken ? `TURSO_AUTH_TOKEN=${tursoDbToken}` : '# TURSO_AUTH_TOKEN='}`,
     `RESEND_API_KEY=${resendApiKey}`,
     `RESEND_EMAIL_FROM=${resendEmail}`,
     `AUTH_SECRET=${authSecret}`,
-    `AUTH_GITHUB_ID=${githubId}`,
-    `AUTH_GITHUB_SECRET=${githubToken}`,
+    `${githubId ? `AUTH_GITHUB_ID=${githubId}` : '# AUTH_GITHUB_ID='}`,
+    `${githubToken ? `AUTH_GITHUB_SECRET=${githubToken}` : '# AUTH_GITHUB_SECRET='}`,
     `SETUP_COMPLETE=true`,
   ].join('\n');
 
@@ -153,7 +157,9 @@ async function wipeAndWriteEnv({
   }
 }
 
-async function ensureInstanceIdAuthorized(clerkSecret: string) {
+async function ensureInstanceIdAuthorized(
+  clerkSecret: string,
+): Promise<string> {
   const canUsePlaygroundApi = await fetch(
     `${honoApiUrl()}/migrations/playground`,
     {
@@ -173,6 +179,13 @@ async function ensureInstanceIdAuthorized(clerkSecret: string) {
       );
     }
   }
+
+  const responseSchema = z.object({
+    instance_id: z.string(),
+  });
+
+  const data = responseSchema.parse(await canUsePlaygroundApi.json());
+  return data.instance_id;
 }
 
 async function getResendEmailFrom(clerkSecret: string) {

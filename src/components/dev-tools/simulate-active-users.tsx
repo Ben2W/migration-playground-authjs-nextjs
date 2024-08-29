@@ -5,23 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Loader } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getTotalUsers } from '@/actions/dev-tools/get-total-users';
 import { simulateActiveUsers } from '@/actions/dev-tools/simulate-active-users';
 import { toast } from '@/components/ui/use-toast';
-
-// Client-side wrapper function
-const fetchTotalUsers = async () => {
-  return await getTotalUsers();
-};
+import useTotalUsers from './useTotalUsers';
 
 export default function SimulateActiveUsers() {
   const [activeUsers, setActiveUsers] = useState(0);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  const { data: totalUsers, isLoading: isTotalUsersLoading } = useQuery({
-    queryKey: ['totalUsers'],
-    queryFn: fetchTotalUsers,
-  });
+  const { data: totalUsers, isLoading: isTotalUsersLoading } = useTotalUsers();
 
   // New query for simulation
   useQuery({

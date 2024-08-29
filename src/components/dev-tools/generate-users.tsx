@@ -58,7 +58,6 @@ export default function GenerateUsers() {
 
   return (
     <div className='w-full space-y-4'>
-      <h2 className='text-lg font-semibold'>Generate Fake Users</h2>
       <div className='flex w-full items-center space-x-2'>
         <div className='relative w-full max-w-xs'>
           <Input
