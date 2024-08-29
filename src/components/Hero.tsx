@@ -15,11 +15,11 @@ export default function OrbitingCirclesDemo() {
     <div className='relative flex h-[400px] w-full max-w-[32rem] flex-col items-center justify-center gap-4 overflow-hidden rounded-lg sm:h-[700px] sm:max-w-[60rem]'>
       <SparklesText
         className='text-center text-3xl sm:text-[4rem]'
-        text='AuthJs Template'
+        text='AuthJs To Clerk Migration'
       />
 
       <h2 className='text-center text-xl font-extrabold text-white dark:text-gray-50 sm:text-[2rem]'>
-        A starter authentication template for Next.js
+        A playground for migrating from AuthJs to Clerk
       </h2>
 
       <OrbitingCircles
