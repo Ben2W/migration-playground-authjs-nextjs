@@ -11,6 +11,7 @@ import {
 import CopyableClipboard from '../copy-text';
 import TotalUsers from './total-users';
 import DeleteAllUsers from './delete-all-users';
+import DownloadBatchCSV from './download-batch-csv';
 
 export default function DevTools() {
   return (
@@ -69,6 +70,12 @@ export default function DevTools() {
               To restart the initialization step run{' '}
               <CopyableClipboard textToCopy='pnpm delete-init-config && pnpm dev' />
             </div>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='download-batch-csv'>
+          <AccordionTrigger>Download Batch CSV</AccordionTrigger>
+          <AccordionContent>
+            <DownloadBatchCSV />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
