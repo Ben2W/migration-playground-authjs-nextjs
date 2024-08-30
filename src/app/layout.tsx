@@ -8,8 +8,7 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
-import { auth } from '@/auth';
-import { signOut } from 'next-auth/react';
+import { ClerkMigrationsWrapper } from '@/clerk/migrations';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -41,18 +40,20 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ReactQueryProvider>
-          <ThemeProvider
-            attribute='class'
-            defaultTheme='system'
-            enableSystem={true}
-            disableTransitionOnChange
-          >
-            <Navbar>{children}</Navbar>
-            <Toaster position='top-center' />
-            <ShadToast />
-          </ThemeProvider>
-        </ReactQueryProvider>
+        <ClerkMigrationsWrapper sendHeartbeat={true}>
+          <ReactQueryProvider>
+            <ThemeProvider
+              attribute='class'
+              defaultTheme='system'
+              enableSystem={true}
+              disableTransitionOnChange
+            >
+              <Navbar>{children}</Navbar>
+              <Toaster position='top-center' />
+              <ShadToast />
+            </ThemeProvider>
+          </ReactQueryProvider>
+        </ClerkMigrationsWrapper>
       </body>
     </html>
   );

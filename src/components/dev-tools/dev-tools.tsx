@@ -68,7 +68,7 @@ export default function DevTools() {
           <AccordionContent>
             <div className='text-sm text-muted-foreground'>
               To restart the initialization step run{' '}
-              <CopyableClipboard textToCopy='pnpm delete-init-config && pnpm dev' />
+              <CopyableClipboard textToCopy='pnpm delete && pnpm dev' />
             </div>
           </AccordionContent>
         </AccordionItem>

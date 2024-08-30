@@ -16,7 +16,7 @@ pnpm install
 pnpm dev
 ```
 
-The CLI will setup the .env file for you! If you want to startover, you can run `pnpm delete-init-config` to delete the `.env` file and `dev.db` files.
+The CLI will setup the .env file for you! If you want to startover, you can run `pnpm delete` to delete the `.env` file and `dev.db` files.
 
 > Deploying this app, or building it with `pnpm build` is not yet supported.
 

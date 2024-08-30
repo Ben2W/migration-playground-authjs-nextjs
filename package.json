@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "dev": "bun scripts/init.ts && concurrently \"bun run db:studio\" \"bun scripts/next-dev-and-localtunnel.ts\" \"lt --port 3005\" ",
-    "delete-init-config": "bun scripts/delete-init-config.ts",
+    "delete": "bun scripts/delete-init-config.ts",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",

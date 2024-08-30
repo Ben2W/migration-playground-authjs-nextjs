@@ -22,6 +22,15 @@ export default async function init(inputClerkSecret?: string) {
     return;
   }
 
+  const clerkPublishableKey =
+    inputClerkSecret ||
+    (await input({
+      message: 'Enter your Clerk publishable key (must start with pk_test_):',
+      validate: (input) =>
+        input.startsWith('pk_test_') ||
+        'Clerk publishable key must start with pk_test_',
+    }));
+
   const clerkSecret =
     inputClerkSecret ||
     (await input({
@@ -89,6 +98,7 @@ export default async function init(inputClerkSecret?: string) {
 
   await wipeAndWriteEnv({
     clerkSecret,
+    clerkPublishableKey,
     instanceId,
     tursoDbUrl,
     tursoDbToken,
@@ -105,6 +115,7 @@ export default async function init(inputClerkSecret?: string) {
 
 async function wipeAndWriteEnv({
   clerkSecret,
+  clerkPublishableKey,
   instanceId,
   tursoDbUrl,
   tursoDbToken,
@@ -114,6 +125,7 @@ async function wipeAndWriteEnv({
   githubToken,
 }: {
   clerkSecret: string;
+  clerkPublishableKey: string;
   instanceId: string;
   tursoDbUrl: string;
   tursoDbToken: string | undefined;
@@ -130,6 +142,7 @@ async function wipeAndWriteEnv({
   const envContent = [
     `NEXT_PUBLIC_HONO_API_URL=${honoApiUrl()}`,
     `CLERK_SECRET_KEY=${clerkSecret}`,
+    `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${clerkPublishableKey}`,
     `NEXT_PUBLIC_CLERK_INSTANCE_ID=${instanceId}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
     `${tursoDbToken ? `TURSO_AUTH_TOKEN=${tursoDbToken}` : '# TURSO_AUTH_TOKEN='}`,
