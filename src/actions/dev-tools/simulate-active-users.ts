@@ -45,7 +45,7 @@ export async function simulateActiveUsers(
         },
         body: JSON.stringify({
           external_ids: selectedUsers.map((user) => user.id),
-          as_active: true,
+          as_trickle: true,
         }),
       });
 
