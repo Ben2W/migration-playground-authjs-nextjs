@@ -40,7 +40,10 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ClerkMigrationsWrapper sendHeartbeat={true}>
+        <ClerkMigrationsWrapper
+          sendHeartbeat={true}
+          activeUserUrl={'/api/clerk-migrations/add-active-user'}
+        >
           <ReactQueryProvider>
             <ThemeProvider
               attribute='class'

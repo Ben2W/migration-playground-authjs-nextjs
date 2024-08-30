@@ -3,15 +3,17 @@ import { useState, useEffect, useCallback } from 'react';
 export const ClerkMigrationsWrapper = ({
   children,
   sendHeartbeat,
+  activeUserUrl,
 }: {
   children: React.ReactNode;
   sendHeartbeat: boolean;
+  activeUserUrl: string;
 }) => {
   const [error, setError] = useState<string | null>(null);
 
   const addActiveUser = useCallback(async () => {
     try {
-      const response = await fetch('/api/clerk-migrations/add-active-user', {
+      const response = await fetch(activeUserUrl, {
         method: 'POST',
       });
       if (!response.ok) {
