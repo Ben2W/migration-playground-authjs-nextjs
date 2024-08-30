@@ -3,19 +3,6 @@ import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 
-async function getPublicIp(): Promise<string> {
-  try {
-    const response = await fetch('https://api.ipify.org');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.text();
-  } catch (error) {
-    console.error('Error fetching public IP:', error);
-    throw error;
-  }
-}
-
 async function updateEnvFile(newVars: Record<string, string>, remove = false) {
   const envPath = path.resolve(process.cwd(), '.env');
   let envContent = await fs.readFile(envPath, 'utf-8').catch(() => '');
@@ -46,13 +33,8 @@ async function updateEnvFile(newVars: Record<string, string>, remove = false) {
       tunnelPromise,
       new Promise<never>((_, reject) =>
         setTimeout(
-          () =>
-            reject(
-              new Error(
-                'Localtunnel connection timeout. (The a16z office wifi blocks localtunnel)',
-              ),
-            ),
-          3000,
+          () => reject(new Error('Localtunnel connection timeout.')),
+          5000,
         ),
       ),
     ]);
@@ -68,16 +50,13 @@ async function updateEnvFile(newVars: Record<string, string>, remove = false) {
     }
     process.exit(1);
   }
-  const publicIp = await getPublicIp();
 
   const newEnvVars = {
     NEXT_PUBLIC_TUNNEL_URL: tunnel.url,
-    NEXT_PUBLIC_IPV4_IP: publicIp,
   };
 
   await updateEnvFile(newEnvVars);
   console.log('Updated .env file with new variables');
-  console.log(`Public IPv4 Address: ${publicIp}`);
 
   // Spawn the Next.js dev server
   const nextDev = spawn('next', ['dev', '--turbo', '-p', port.toString()], {
