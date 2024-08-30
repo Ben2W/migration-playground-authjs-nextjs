@@ -5,6 +5,7 @@ import { inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 export async function POST(request: Request) {
+  /* Authorize the "Webook" */
   const authHeader = request.headers.get('Authorization');
   if (
     !authHeader ||
