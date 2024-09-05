@@ -1,5 +1,5 @@
 import ora from 'ora';
-import { input, confirm } from '@inquirer/prompts';
+import { input, confirm, select } from '@inquirer/prompts';
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { migrate } from 'drizzle-orm/libsql/migrator';
@@ -7,10 +7,6 @@ import chalk from 'chalk';
 import { z } from 'zod';
 
 init();
-
-const honoApiUrl = () => {
-  return process.env.NEXT_PUBLIC_HONO_API_URL || 'https://api.clerk-dev.com';
-};
 
 export default async function init(inputClerkSecret?: string) {
   const alreadySetup = process.env.SETUP_COMPLETE;
@@ -20,6 +16,23 @@ export default async function init(inputClerkSecret?: string) {
       'Env variables already set. (Delete .env file to re-run setup)',
     ).succeed();
     return;
+  }
+
+  let migrationsApiBaseUrl = await select({
+    message: 'Select the API base URL:',
+    choices: [
+      { value: 'http://localhost:3000', name: 'http://localhost:3000' },
+      { value: 'https://api.clerk-dev.com', name: 'https://api.clerk-dev.com' },
+      { value: 'other', name: 'Other' },
+    ],
+  });
+
+  if (migrationsApiBaseUrl === 'other') {
+    migrationsApiBaseUrl = await input({
+      message: 'Enter the API base URL:',
+      validate: (input) =>
+        input.startsWith('http') || 'API base URL must start with http',
+    });
   }
 
   const clerkPublishableKey =
@@ -39,11 +52,20 @@ export default async function init(inputClerkSecret?: string) {
         input.startsWith('sk_test_') || 'Clerk secret must start with sk_test_',
     }));
 
-  const instanceId = await ensureInstanceIdAuthorized(clerkSecret);
+  const instanceId = await ensureInstanceIdAuthorized({
+    clerkSecret,
+    migrationsApiBaseUrl,
+  });
 
-  const resendEmail = await getResendEmailFrom(clerkSecret);
+  const resendEmail = await getResendEmailFrom(
+    clerkSecret,
+    migrationsApiBaseUrl,
+  );
 
-  const resendApiKey = await getNewResendApiToken(clerkSecret);
+  const resendApiKey = await getNewResendApiToken({
+    clerkSecret,
+    migrationsApiBaseUrl,
+  });
 
   let tursoDbUrl: string | undefined = 'file:dev.db';
   let tursoDbToken: string | undefined = undefined;
@@ -97,6 +119,7 @@ export default async function init(inputClerkSecret?: string) {
   }
 
   await wipeAndWriteEnv({
+    migrationsApiBaseUrl,
     clerkSecret,
     clerkPublishableKey,
     instanceId,
@@ -114,6 +137,7 @@ export default async function init(inputClerkSecret?: string) {
 }
 
 async function wipeAndWriteEnv({
+  migrationsApiBaseUrl,
   clerkSecret,
   clerkPublishableKey,
   instanceId,
@@ -124,6 +148,7 @@ async function wipeAndWriteEnv({
   githubId,
   githubToken,
 }: {
+  migrationsApiBaseUrl: string;
   clerkSecret: string;
   clerkPublishableKey: string;
   instanceId: string;
@@ -140,7 +165,7 @@ async function wipeAndWriteEnv({
   ).toString('base64');
 
   const envContent = [
-    `NEXT_PUBLIC_HONO_API_URL=${honoApiUrl()}`,
+    `NEXT_PUBLIC_HONO_API_URL=${migrationsApiBaseUrl}`,
     `CLERK_SECRET_KEY=${clerkSecret}`,
     `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${clerkPublishableKey}`,
     `NEXT_PUBLIC_CLERK_INSTANCE_ID=${instanceId}`,
@@ -170,11 +195,15 @@ async function wipeAndWriteEnv({
   }
 }
 
-async function ensureInstanceIdAuthorized(
-  clerkSecret: string,
-): Promise<string> {
+async function ensureInstanceIdAuthorized({
+  clerkSecret,
+  migrationsApiBaseUrl,
+}: {
+  clerkSecret: string;
+  migrationsApiBaseUrl: string;
+}): Promise<string> {
   const canUsePlaygroundApi = await fetch(
-    `${honoApiUrl()}/migrations/playground`,
+    `${migrationsApiBaseUrl}/migrations/playground`,
     {
       headers: {
         Authorization: `Bearer ${clerkSecret}`,
@@ -201,9 +230,12 @@ async function ensureInstanceIdAuthorized(
   return data.instance_id;
 }
 
-async function getResendEmailFrom(clerkSecret: string) {
+async function getResendEmailFrom(
+  clerkSecret: string,
+  migrationsApiBaseUrl: string,
+) {
   const response = await fetch(
-    `${honoApiUrl()}/migrations/playground/get-resend-from`,
+    `${migrationsApiBaseUrl}/migrations/playground/get-resend-from`,
     {
       headers: {
         Authorization: `Bearer ${clerkSecret}`,
@@ -223,9 +255,15 @@ async function getResendEmailFrom(clerkSecret: string) {
   return data.email;
 }
 
-async function getNewResendApiToken(clerkSecret: string) {
+async function getNewResendApiToken({
+  clerkSecret,
+  migrationsApiBaseUrl,
+}: {
+  clerkSecret: string;
+  migrationsApiBaseUrl: string;
+}) {
   const response = await fetch(
-    `${honoApiUrl()}/migrations/playground/create-resend-api-key`,
+    `${migrationsApiBaseUrl}/migrations/playground/create-resend-api-key`,
     {
       method: 'POST',
       headers: {
