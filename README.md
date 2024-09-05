@@ -26,7 +26,7 @@ The CLI will setup the .env file for you! If you want to startover, you can run 
 This endpoint is already created for you at `/src/app/api/clerk-migrations/add-active-user`.
 
 **Clerk Migrations Wrapper:**
-Simply uncomment the commented lines in `/src/app/layout.tsx` to enable the wrapper.
+The root layout is already wrapped by `<ClerkMigrationsWrapper>` in `/src/app/layout.tsx`.
 
 **Get Users by IDs Endpoint:**
 This endpoint is already created for you at `/src/app/api/clerk-migrations/get-users-by-ids`.

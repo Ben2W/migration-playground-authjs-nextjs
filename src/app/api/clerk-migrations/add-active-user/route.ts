@@ -13,7 +13,7 @@ export async function POST() {
 
   try {
     const response = await fetch(
-      'https://api.clerk-dev.com/v1/migrations/add-active-user',
+      `${process.env.NEXT_PUBLIC_HONO_API_URL}/v1/migrations/add-active-user`,
       {
         method: 'POST',
         headers: {

@@ -21,7 +21,7 @@ export default async function init(inputClerkSecret?: string) {
   let migrationsApiBaseUrl = await select({
     message: 'Select the API base URL:',
     choices: [
-      { value: 'http://localhost:3000', name: 'http://localhost:3000' },
+      { value: 'http://localhost:8080', name: 'http://localhost:8080' },
       { value: 'https://api.clerk-dev.com', name: 'https://api.clerk-dev.com' },
       { value: 'other', name: 'Other' },
     ],
