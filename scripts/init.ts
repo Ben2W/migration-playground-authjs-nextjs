@@ -12,9 +12,7 @@ export default async function init(inputClerkSecret?: string) {
   const alreadySetup = process.env.SETUP_COMPLETE;
 
   if (alreadySetup) {
-    ora(
-      'Env variables already set. (Delete .env file to re-run setup)',
-    ).succeed();
+    ora('Env variables already set. (run pnpm delete to reset)').succeed();
     return;
   }
 

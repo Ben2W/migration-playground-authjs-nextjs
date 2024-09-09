@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { inArray } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 export async function POST(request: Request) {
@@ -32,11 +32,19 @@ export async function POST(request: Request) {
       .select({
         external_id: users.id,
         first_name: users.name,
+        email_address: users.email,
+        username: users.username,
+        password: users.password,
       })
       .from(users)
       .where(inArray(users.id, external_ids));
 
-    return NextResponse.json(foundUsers);
+    const response = foundUsers.map((user) => ({
+      ...user,
+      email_address: [user.email_address],
+    }));
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json(
