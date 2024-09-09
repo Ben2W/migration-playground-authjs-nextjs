@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import GenerateLoginUser from './generate-login-user';
 import GenerateUsers from './generate-users';
 import DevToolsLinks from './links';
@@ -14,6 +15,8 @@ import DeleteAllUsers from './delete-all-users';
 import DownloadBatchCSV from './download-batch-csv';
 
 export default function DevTools() {
+  noStore();
+
   return (
     <div className='p-4'>
       <div className='mb-4 flex items-center justify-between text-lg'>
@@ -31,10 +34,19 @@ export default function DevTools() {
       <Accordion type='multiple' className='w-full'>
         {process.env.NEXT_PUBLIC_TUNNEL_URL && (
           <AccordionItem value='view-local-tunnel-info'>
-            <AccordionTrigger>View Local Tunnel Info</AccordionTrigger>
+            <AccordionTrigger>URLs</AccordionTrigger>
             <AccordionContent>
+              Get Users by IDs
+              <CopyableClipboard
+                textToCopy={`http://localhost:3005/api/clerk-migrations/get-users-by-ids`}
+              />
+              Localtunnel URL
               <CopyableClipboard
                 textToCopy={process.env.NEXT_PUBLIC_TUNNEL_URL}
+              />
+              Get Users by IDs LocalTunnel URL
+              <CopyableClipboard
+                textToCopy={`${process.env.NEXT_PUBLIC_TUNNEL_URL}/api/clerk-migrations/get-users-by-ids`}
               />
             </AccordionContent>
           </AccordionItem>

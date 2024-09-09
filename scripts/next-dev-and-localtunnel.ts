@@ -2,6 +2,7 @@ import localtunnel, { Tunnel } from 'localtunnel';
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 
 async function updateEnvFile(newVars: Record<string, string>, remove = false) {
   const envPath = path.resolve(process.cwd(), '.env');
@@ -21,13 +22,20 @@ async function updateEnvFile(newVars: Record<string, string>, remove = false) {
   await fs.writeFile(envPath, envContent.trim());
 }
 
+function generateSubdomain(secretKey: string): string {
+  const hash = crypto.createHash('sha256').update(secretKey).digest('hex');
+  return hash.slice(0, 4);
+}
+
 (async () => {
   const port = 3005;
   let tunnel: Tunnel;
   try {
+    const clerkSecretKey = process.env.CLERK_SECRET_KEY || '';
+    const subdomain = `auth-playground-${generateSubdomain(clerkSecretKey)}`;
     const tunnelPromise = localtunnel({
       port,
-      subdomain: `auth-playground-${Math.random().toString(36).substring(2, 6)}`,
+      subdomain,
     });
     tunnel = await Promise.race([
       tunnelPromise,
