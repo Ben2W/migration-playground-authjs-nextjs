@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     const response = foundUsers.map((user) => ({
       ...user,
       email_address: [user.email_address],
+      username: user.username ? user.username.replace(/\./g, '-') : null,
     }));
 
     return NextResponse.json(response);
