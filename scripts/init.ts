@@ -65,8 +65,31 @@ export default async function init(inputClerkSecret?: string) {
     migrationsApiBaseUrl,
   });
 
-  let tursoDbUrl: string | undefined = 'file:dev.db';
-  let tursoDbToken: string | undefined = undefined;
+  const useTurso = await select({
+    message: 'Would you like to use a sqlite file or a Turso database?',
+    choices: [
+      { value: 'sqlite', name: 'file:dev.db' },
+      { value: 'turso', name: 'Turso' },
+    ],
+  });
+
+  const tursoDbUrl =
+    useTurso === 'sqlite'
+      ? 'file:dev.db'
+      : await input({
+          message: 'Enter your Turso database URL:',
+          validate: (input) =>
+            input.startsWith('libsql://') ||
+            'Turso database URL must start with libsql://',
+        });
+  const tursoDbToken =
+    useTurso === 'sqlite'
+      ? undefined
+      : await input({
+          message: 'Enter your Turso auth token:',
+          validate: (input) =>
+            input.length > 0 || 'Turso auth token cannot be empty',
+        });
 
   const client = createClient({
     url: tursoDbUrl,

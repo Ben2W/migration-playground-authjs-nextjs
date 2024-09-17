@@ -25,14 +25,12 @@ export async function POST() {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to add active user');
+      throw new Error(
+        `Could not add active user: ${response.status} ${response.statusText}`,
+      );
     }
 
-    const data = await response.json();
-
-    const token = data.token;
-
-    return NextResponse.json({ token });
+    return NextResponse.json({ message: 'User added successfully' });
   } catch (error) {
     console.error('Error adding active user:', error);
     return NextResponse.json(
