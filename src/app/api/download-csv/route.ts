@@ -19,7 +19,8 @@ async function generateBatchCSV() {
   // Write CSV header
   writeStream.write('external_id\n');
 
-  while (true) {
+  let hasMoreData = true;
+  while (hasMoreData) {
     const query = db
       .select({ id: users.id })
       .from(users)
@@ -33,13 +34,13 @@ async function generateBatchCSV() {
     const batch = await query;
 
     if (batch.length === 0) {
-      break;
+      hasMoreData = false;
+    } else {
+      const csvData = batch.map((user) => user.id).join('\n') + '\n';
+      writeStream.write(csvData);
+
+      cursor = batch[batch.length - 1];
     }
-
-    const csvData = batch.map((user) => user.id).join('\n') + '\n';
-    writeStream.write(csvData);
-
-    cursor = batch[batch.length - 1];
   }
 
   // Return a promise that resolves when the stream is finished
@@ -89,9 +90,6 @@ async function deleteBatchCSV() {
     await fs.promises.unlink(filePath);
     console.log('Existing batch.csv file deleted');
   } catch (error) {
-    // If the file doesn't exist, ignore the error
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      console.error('Error deleting existing batch.csv file:', error);
-    }
+    console.error('Error deleting existing batch.csv file:', error);
   }
 }

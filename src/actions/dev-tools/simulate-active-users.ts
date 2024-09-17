@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcryptjs';
-import { eq, inArray, SQL, sql } from 'drizzle-orm';
+import { inArray, SQL, sql } from 'drizzle-orm';
 
 export async function simulateActiveUsers({
   numToSimulate,

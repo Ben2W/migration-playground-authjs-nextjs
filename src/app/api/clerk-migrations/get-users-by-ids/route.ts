@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { inArray, sql } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 export async function POST(request: Request) {

@@ -35,10 +35,15 @@ class OauthError extends AuthError {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   experimental: { enableWebAuthn: true },
   adapter: DrizzleAdapter(db, {
+    // @ts-ignore
     usersTable: users,
+    // @ts-ignore
     accountsTable: accounts,
+    // @ts-ignore
     sessionsTable: sessions,
+    // @ts-ignore
     verificationTokensTable: verificationTokens,
+    // @ts-ignore
     authenticatorsTable: authenticators,
   }),
   providers: [
