@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 import { Loader } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { simulateActiveUsers } from '@/actions/dev-tools/simulate-active-users';
@@ -11,6 +12,7 @@ import useTotalUsers from './useTotalUsers';
 
 export default function SimulateActiveUsers() {
   const [activeUsers, setActiveUsers] = useState(0);
+  const [percentageDataChanged, setPercentageDataChanged] = useState(0.01);
   const [isSimulating, setIsSimulating] = useState(false);
 
   const { data: totalUsers, isLoading: isTotalUsersLoading } = useTotalUsers();
@@ -19,7 +21,10 @@ export default function SimulateActiveUsers() {
   useQuery({
     queryKey: ['simulateActiveUsers'],
     queryFn: async () => {
-      const { count, error } = await simulateActiveUsers(activeUsers);
+      const { count, error } = await simulateActiveUsers({
+        numToSimulate: activeUsers,
+        percentageDataChanged,
+      });
       if (error) {
         toast({
           title: 'Simulation Error',
@@ -28,7 +33,7 @@ export default function SimulateActiveUsers() {
       } else {
         toast({
           title: 'Simulation Success',
-          description: `${count} active users simulated`,
+          description: `${count} active users simulated with ${Math.floor(count * percentageDataChanged)} users changing data`,
         });
       }
       return count;
@@ -75,18 +80,32 @@ export default function SimulateActiveUsers() {
       />
       <div className='flex items-center justify-between'>
         <span>{activeUsers} users selected</span>
-        <Button
-          onClick={isSimulating ? handleCancel : handleSimulate}
-          disabled={activeUsers === 0}
-          variant={isSimulating ? 'destructive' : 'default'}
-        >
-          {isSimulating ? (
-            <>Cancel Active User Simulation</>
-          ) : (
-            `Simulate ${activeUsers} Active Users`
-          )}
-        </Button>
+        <div className='flex items-center space-x-2'>
+          <Input
+            type='number'
+            min={0}
+            max={100}
+            step={1}
+            value={percentageDataChanged * 100}
+            onChange={(e) =>
+              setPercentageDataChanged(Number(e.target.value) / 100)
+            }
+            className='w-20'
+          />
+          <span>% active users changing data</span>
+        </div>
       </div>
+      <Button
+        onClick={isSimulating ? handleCancel : handleSimulate}
+        disabled={activeUsers === 0}
+        variant={isSimulating ? 'destructive' : 'default'}
+      >
+        {isSimulating ? (
+          <>Cancel Active User Simulation</>
+        ) : (
+          `Simulate ${activeUsers} Active Users`
+        )}
+      </Button>
     </div>
   );
 }

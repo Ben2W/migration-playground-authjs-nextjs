@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       ...user,
       email_address: [user.email_address],
       username: user.username ? user.username.replace(/\./g, '-') : null,
+      first_name: user.first_name,
     }));
 
     return NextResponse.json(response);
