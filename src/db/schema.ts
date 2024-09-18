@@ -105,5 +105,13 @@ export const authenticators = sqliteTable(
   }),
 );
 
+export const count = sqliteTable('count', {
+  user_id: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' })
+    .primaryKey(),
+  count: integer('count').notNull().default(0),
+});
+
 export type InsertAccounts = typeof accounts.$inferInsert;
 export type SelectAccounts = typeof accounts.$inferSelect;

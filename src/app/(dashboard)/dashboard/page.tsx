@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 
 import { Metadata } from 'next';
+import { Counter } from "./_components'/counter";
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -44,6 +45,10 @@ export default function Dashboard() {
                 Go to settings
               </Link>
             </div>
+          </div>
+          <div>
+            <h3 className='text-lg font-medium'>Counter</h3>
+            <Counter />
           </div>
         </CardContent>
       </Card>

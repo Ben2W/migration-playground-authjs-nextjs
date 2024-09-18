@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { unstable_noStore } from 'next/cache';
 import ResizableWindows from './dev-tools/resizable-window';
 import { ThemeToggle } from './ThemeToggle';
+import NavLinks from './NavLinks';
 
 export default async function Navbar({
   children,
@@ -18,7 +19,7 @@ export default async function Navbar({
   const user = session?.user;
 
   return (
-    <div>
+    <ResizableWindows>
       <header className='sticky top-0 z-50 border-b bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-800'>
         <div className='mx-auto flex items-center justify-between'>
           <div className='flex items-center'>
@@ -43,12 +44,7 @@ export default async function Navbar({
           </div>
           {session ? (
             <div className='flex items-center space-x-4'>
-              <Link
-                className='text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50'
-                href='/dashboard'
-              >
-                Dashboard
-              </Link>
+              <NavLinks />
               <Link
                 className='text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50'
                 href='/profile'
@@ -77,7 +73,7 @@ export default async function Navbar({
           )}
         </div>
       </header>
-      <ResizableWindows>{children}</ResizableWindows>
-    </div>
+      {children}
+    </ResizableWindows>
   );
 }

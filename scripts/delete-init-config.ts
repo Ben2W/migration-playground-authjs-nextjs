@@ -1,10 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
 import ora from 'ora';
+import chalk from 'chalk';
 
 (async () => {
   const envPath = path.resolve(process.cwd(), '.env');
-  const dbPath = path.resolve(process.cwd(), 'dev.db');
 
   const envSpinner = ora('Deleting .env file').start();
   try {
@@ -13,6 +13,17 @@ import ora from 'ora';
   } catch (error) {
     envSpinner.fail(`Error deleting .env file: ${error}`);
   }
+
+  if (process.env.TURSO_AUTH_TOKEN) {
+    console.log(
+      chalk.yellow(
+        'This script does not delete the Turso remote database. Please delete it manually.',
+      ),
+    );
+    return;
+  }
+
+  const dbPath = path.resolve(process.cwd(), 'dev.db');
 
   const dbSpinner = ora('Deleting dev.db file').start();
   try {

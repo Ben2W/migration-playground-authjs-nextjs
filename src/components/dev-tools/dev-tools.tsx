@@ -18,7 +18,7 @@ export default function DevTools() {
   noStore();
 
   return (
-    <div className='p-4'>
+    <div className='h-screen p-4'>
       <div className='mb-4 flex items-center justify-between text-lg'>
         <span className='font-bold'>Dev Tools</span>
         {process.env.NEXT_PUBLIC_CLERK_INSTANCE_ID && (

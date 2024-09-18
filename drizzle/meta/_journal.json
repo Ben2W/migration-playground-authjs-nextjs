@@ -1,47 +1,12 @@
 {
-  "version": "6",
+  "version": "7",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1716520079876,
-      "tag": "0000_closed_lady_vermin",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1716522844951,
-      "tag": "0001_brainy_domino",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1718512560721,
-      "tag": "0002_naive_sunspot",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1718681907655,
-      "tag": "0003_amazing_stranger",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1718860420199,
-      "tag": "0004_passkey",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1718952389590,
-      "tag": "0005_equal_havok",
+      "when": 1726683088627,
+      "tag": "0000_wealthy_phantom_reporter",
       "breakpoints": true
     }
   ]

@@ -1,5 +1,7 @@
 import { auth } from '@/auth';
 import OrbitingCirclesDemo from '@/components/Hero';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -17,6 +19,14 @@ export default async function Home() {
   }
   return (
     <main className='flex h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-600 to-gray-400 dark:from-[#2e026d] dark:to-[#15162c]'>
+      <div className='flex space-x-4'>
+        <Link href='/dashboard'>
+          <Button variant={'outline'}>Dashboard</Button>
+        </Link>
+        <Link href='/profile'>
+          <Button variant={'outline'}>Profile</Button>
+        </Link>
+      </div>
       <OrbitingCirclesDemo />
     </main>
   );
