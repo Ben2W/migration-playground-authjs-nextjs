@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         first_name: users.name,
         email_address: users.email,
         username: users.username,
-        password: users.password,
+        password_digest: users.password,
       })
       .from(users)
       .where(inArray(users.id, external_ids));
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       ...user,
       email_address: [user.email_address],
       username: user.username ? user.username.replace(/\./g, '-') : null,
+      password_hasher: 'bcrypt',
       first_name: user.first_name,
     }));
 
