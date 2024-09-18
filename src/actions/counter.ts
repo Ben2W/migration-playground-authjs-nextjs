@@ -6,7 +6,6 @@ import { count } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function increaseCount() {
-  console.log('increaseCount');
   const session = await auth();
 
   if (!session || !session.user || !session.user.id) {

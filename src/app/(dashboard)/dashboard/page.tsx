@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 
 import { Metadata } from 'next';
-import { Counter } from "./_components'/counter";
+import { Counter } from '@/components/counter';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
