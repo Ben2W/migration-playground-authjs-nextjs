@@ -2,10 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getCount,
-  increaseCount,
-} from '../app/(dashboard)/dashboard/_components/actions';
+import { getCount, increaseCount } from '@/actions/counter';
 
 export function Counter() {
   const queryClient = useQueryClient();
