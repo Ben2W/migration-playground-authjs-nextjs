@@ -24,8 +24,8 @@ export const addActiveUserHandler = (
 
       if (!validatedData.mark_active) {
         return NextResponse.json(
-          { message: 'User not authorized' },
-          { status: 403 },
+          { message: 'No action required when mark_active is false' },
+          { status: 201 },
         );
       }
 
