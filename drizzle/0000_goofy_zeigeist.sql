@@ -29,8 +29,7 @@ CREATE TABLE `authenticator` (
 --> statement-breakpoint
 CREATE TABLE `count` (
 	`user_id` text PRIMARY KEY NOT NULL,
-	`count` integer DEFAULT 0 NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	`count` integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `session` (
