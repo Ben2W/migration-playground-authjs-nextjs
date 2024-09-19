@@ -41,7 +41,7 @@ export default async function RootLayout({
         )}
       >
         <ClerkMigrationsWrapper
-          sendHeartbeat={false}
+          sendHeartbeat={process.env.SHOULD_SEND_HEARTBEAT === 'true'}
           activeUserUrl={'/api/clerk-migrations/add-active-user'}
         >
           <ReactQueryProvider>
