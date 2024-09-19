@@ -9,6 +9,12 @@ import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
 import { ClerkMigrationsWrapper } from '@/clerk/migrations';
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+} from '@clerk/nextjs';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -40,23 +46,30 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ClerkMigrationsWrapper
-          sendHeartbeat={true}
-          activeUserUrl={'/api/clerk-migrations/add-active-user'}
-        >
-          <ReactQueryProvider>
-            <ThemeProvider
-              attribute='class'
-              defaultTheme='system'
-              enableSystem={true}
-              disableTransitionOnChange
-            >
-              <Navbar>{children}</Navbar>
-              <Toaster position='top-center' />
-              <ShadToast />
-            </ThemeProvider>
-          </ReactQueryProvider>
-        </ClerkMigrationsWrapper>
+        <ClerkProvider>
+          <ClerkMigrationsWrapper
+            sendHeartbeat={true}
+            activeUserUrl={'/api/clerk-migrations/add-active-user'}
+          >
+            <ReactQueryProvider>
+              <ThemeProvider
+                attribute='class'
+                defaultTheme='system'
+                enableSystem={true}
+                disableTransitionOnChange
+              >
+                <Navbar>
+                  <SignedIn>{children}</SignedIn>
+                  <SignedOut>
+                    <SignInButton />
+                  </SignedOut>
+                </Navbar>
+                <Toaster position='top-center' />
+                <ShadToast />
+              </ThemeProvider>
+            </ReactQueryProvider>
+          </ClerkMigrationsWrapper>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -106,10 +106,7 @@ export const authenticators = sqliteTable(
 );
 
 export const count = sqliteTable('count', {
-  user_id: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' })
-    .primaryKey(),
+  user_id: text('user_id').notNull().primaryKey(),
   count: integer('count').notNull().default(0),
 });
 

@@ -15,9 +15,6 @@ export default function NavLinks() {
       >
         <Link href='/dashboard'>Dashboard</Link>
       </Button>
-      <Button variant={pathname === '/profile' ? 'default' : 'outline'} asChild>
-        <Link href='/profile'>Profile</Link>
-      </Button>
     </div>
   );
 }
