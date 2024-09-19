@@ -26,17 +26,16 @@ export async function increaseCount() {
 export async function getCount() {
   const session = await clerkAuth();
 
-  const user_id = session.userId;
-  const external_id = session.sessionClaims?.external_id as string | null;
+  const relevant_id = session.sessionClaims?.relevant_id as string;
 
-  if (!user_id && !external_id) {
+  if (!relevant_id) {
     throw new Error('User not authenticated');
   }
 
   const [userCount] = await db
     .select()
     .from(count)
-    .where(or(eq(count.user_id, user_id), eq(count.user_id, external_id)));
+    .where(eq(count.user_id, relevant_id));
 
   return userCount?.count ?? 0;
 }
