@@ -1,22 +1,22 @@
 'use server';
 
-import { auth } from '@/auth';
 import { db } from '@/db';
 import { count } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
+import { auth as clerkAuth } from '@clerk/nextjs/server';
 
 export async function increaseCount() {
-  const session = await auth();
+  const session = await clerkAuth();
 
-  if (!session || !session.user || !session.user.id) {
+  const relevant_id = session.sessionClaims?.relevant_id as string;
+
+  if (!relevant_id) {
     throw new Error('User not authenticated');
   }
 
-  const user_id = session.user.id;
-
   await db
     .insert(count)
-    .values({ user_id, count: 1 })
+    .values({ user_id: relevant_id, count: 1 })
     .onConflictDoUpdate({
       target: count.user_id,
       set: { count: sql`${count.count} + 1` },
@@ -24,18 +24,19 @@ export async function increaseCount() {
 }
 
 export async function getCount() {
-  const session = await auth();
+  const session = await clerkAuth();
 
-  if (!session || !session.user || !session.user.id) {
+  const user_id = session.userId;
+  const external_id = session.sessionClaims?.external_id as string | null;
+
+  if (!user_id && !external_id) {
     throw new Error('User not authenticated');
   }
-
-  const userId = session.user.id;
 
   const [userCount] = await db
     .select()
     .from(count)
-    .where(eq(count.user_id, userId));
+    .where(or(eq(count.user_id, user_id), eq(count.user_id, external_id)));
 
   return userCount?.count ?? 0;
 }

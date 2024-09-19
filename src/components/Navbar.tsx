@@ -1,5 +1,4 @@
 import React from 'react';
-import { auth } from '@/auth';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { SignOut } from './AuthButton';
@@ -8,6 +7,8 @@ import { unstable_noStore } from 'next/cache';
 import ResizableWindows from './dev-tools/resizable-window';
 import { ThemeToggle } from './ThemeToggle';
 import NavLinks from './NavLinks';
+import { UserButton } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 
 export default async function Navbar({
   children,
@@ -16,7 +17,7 @@ export default async function Navbar({
 }) {
   unstable_noStore();
   const session = await auth();
-  const user = session?.user;
+  const user = session.userId;
 
   return (
     <ResizableWindows>
@@ -42,35 +43,8 @@ export default async function Navbar({
             </Link>
             <span>)</span>
           </div>
-          {session ? (
-            <div className='flex items-center space-x-4'>
-              <NavLinks />
-              <Link
-                className='text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50'
-                href='/profile'
-              >
-                <Avatar>
-                  <AvatarImage
-                    className='rounded-full border-2 border-black dark:border-white'
-                    src={user?.image ? user.image : ''}
-                  />
-                  <AvatarFallback className='rounded-full border-2 border-black dark:border-white'>
-                    {user?.name?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-              <SignOut />
-            </div>
-          ) : (
-            <div className='flex items-center space-x-4'>
-              <Link href='/sign-in'>
-                <Button size='sm'>Sign In</Button>
-              </Link>
-              <Link href='/sign-up'>
-                <Button size='sm'>Sign Up</Button>
-              </Link>
-            </div>
-          )}
+          <NavLinks />
+          <UserButton />
         </div>
       </header>
       {children}
