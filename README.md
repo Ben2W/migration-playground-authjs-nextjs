@@ -31,7 +31,7 @@ The root layout is already wrapped by `<ClerkMigrationsWrapper>` in `/src/app/la
 **Get Users by IDs Endpoint:**
 This endpoint is already created for you at `/src/app/api/clerk-migrations/get-users-by-ids`.
 
-## Differences in Developer Experience (DX)
+## Differences in Developer Experience
 
 1. **Local Development with External Access**
 
