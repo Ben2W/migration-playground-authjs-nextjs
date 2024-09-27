@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { z } from 'zod';
 
 const userSchema = z.discriminatedUnion('mark_active', [
@@ -12,15 +12,28 @@ const userSchema = z.discriminatedUnion('mark_active', [
   }),
 ]);
 
+const clientReqBodySchema = z.object({
+  is_signed_into_clerk: z.boolean().optional(),
+  browser_id: z.string().optional(),
+});
+
+type ClientReqBody = z.infer<typeof clientReqBodySchema>;
+
 type UserData = z.infer<typeof userSchema>;
 
 export const addActiveUserHandler = (
   getUserData: () => Promise<UserData> | UserData,
 ) => {
-  return async () => {
+  return async (request: NextRequest) => {
     try {
       const userData = await getUserData();
       const validatedData = userSchema.parse(userData);
+
+      let clientReqBody: ClientReqBody | null = null;
+
+      try {
+        clientReqBody = clientReqBodySchema.parse(await request.json());
+      } catch (error) {}
 
       if (!validatedData.mark_active) {
         return NextResponse.json(
@@ -37,17 +50,16 @@ export const addActiveUserHandler = (
             'Content-Type': 'application/json',
             Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
           },
-          body: JSON.stringify({ external_id: validatedData.external_id }),
+          body: JSON.stringify({
+            external_id: validatedData.external_id,
+            is_signed_into_clerk: clientReqBody?.is_signed_into_clerk,
+            browser_id: clientReqBody?.browser_id,
+          }),
         },
       );
 
-      if (!response.ok) {
-        throw new Error(
-          `Could not add active user: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      return NextResponse.json({ message: 'User added successfully' });
+      const data = await response.json();
+      return NextResponse.json(data, { status: response.status });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json({ error: error.errors }, { status: 400 });
