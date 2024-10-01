@@ -6,7 +6,7 @@
   "author": "Vivek Patel <me@patelvivek.dev>",
   "private": true,
   "scripts": {
-    "dev": "bun scripts/init.ts && concurrently \"bun run db:studio\" \"bun scripts/next-dev-and-localtunnel.ts\" \"lt --port 3005\" ",
+    "dev": "bun scripts/init.ts && concurrently \"bun run db:studio\" \"next dev -p 3005\" ",
     "delete": "bun scripts/delete-init-config.ts",
     "migrate": "bun scripts/migrate.ts",
     "generate": "npx drizzle-kit generate",

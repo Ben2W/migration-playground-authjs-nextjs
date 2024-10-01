@@ -20,7 +20,7 @@ export const ClerkMigrationsWrapper = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
   const { isSignedIn, userId, signOut } = useAuth();
-  const { signIn } = useSignIn();
+  const { signIn, setActive } = useSignIn();
 
   const getBrowserId = useCallback(() => {
     let browserId = localStorage.getItem('clerk_migrations_browser_id');
@@ -40,8 +40,7 @@ export const ClerkMigrationsWrapper = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          external_id: userId,
-          is_signed_into_clerk: isSignedIn,
+          is_signed_into_clerk: isSignedIn ?? false,
           browser_id: browserId,
         }),
       });
@@ -59,7 +58,7 @@ export const ClerkMigrationsWrapper = ({
 
       if (isSignedIn) {
         if (
-          validatedData.clerk_user_id &&
+          !validatedData.clerk_user_id ||
           validatedData.clerk_user_id !== userId
         ) {
           await signOut();
@@ -68,10 +67,16 @@ export const ClerkMigrationsWrapper = ({
       } else if (validatedData.sign_in_token) {
         console.log('Received sign-in token:', validatedData.sign_in_token);
         try {
-          await signIn?.create({
+          const signUpAttempt = await signIn?.create({
             strategy: 'ticket',
             ticket: validatedData.sign_in_token,
           });
+
+          if (signUpAttempt?.status === 'complete') {
+            await setActive?.({ session: signUpAttempt.createdSessionId });
+          }
+
+          // Reload the window after successful sign-in
         } catch (signInError) {
           console.error('Error signing in with token:', signInError);
           setError('Failed to sign in with the provided token.');

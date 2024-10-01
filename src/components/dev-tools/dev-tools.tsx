@@ -13,6 +13,7 @@ import CopyableClipboard from '../copy-text';
 import TotalUsers from './total-users';
 import DeleteAllUsers from './delete-all-users';
 import DownloadBatchCSV from './download-batch-csv';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function DevTools() {
   noStore();
@@ -32,6 +33,21 @@ export default function DevTools() {
       <DevToolsLinks />
       <TotalUsers className='my-4' />
       <Accordion type='multiple' className='w-full'>
+        <AccordionItem value='view-clerk-login'>
+          <AccordionTrigger>View Clerk Login</AccordionTrigger>
+          <AccordionContent>
+            <SignedIn>
+              <div className='rounded border-2 border-primary p-2'>
+                You are logged in to Clerk! <UserButton />
+              </div>
+            </SignedIn>
+            <SignedOut>
+              <div className='rounded border-2 border-destructive p-2'>
+                You are logged out of Clerk!
+              </div>
+            </SignedOut>
+          </AccordionContent>
+        </AccordionItem>
         {process.env.NEXT_PUBLIC_TUNNEL_URL && (
           <AccordionItem value='view-local-tunnel-info'>
             <AccordionTrigger>URLs</AccordionTrigger>
