@@ -16,11 +16,29 @@ export default async function init(inputClerkSecret?: string) {
     return;
   }
 
+  let clerkApiBaseUrl = await select({
+    message: 'Select the Clerk API base URL:',
+    choices: [
+      { value: 'https://api.clerk.dev', name: 'https://api.clerk.dev' },
+      {
+        value: 'https://api.clerkstage.dev',
+        name: 'https://api.clerkstage.dev',
+      },
+      { value: 'https://api.lclclerk.com', name: 'https://api.lclclerk.com' },
+      { value: 'other', name: 'Other' },
+    ],
+  });
+
+  if (clerkApiBaseUrl === 'other') {
+    clerkApiBaseUrl = await input({
+      message: 'Enter the Clerk API base URL:',
+    });
+  }
+
   let migrationsApiBaseUrl = await select({
-    message: 'Select the API base URL:',
+    message: 'Select the Migrations API base URL:',
     choices: [
       { value: 'http://localhost:8080', name: 'http://localhost:8080' },
-      { value: 'https://api.clerk-dev.com', name: 'https://api.clerk-dev.com' },
       { value: 'other', name: 'Other' },
     ],
   });
@@ -50,19 +68,9 @@ export default async function init(inputClerkSecret?: string) {
         input.startsWith('sk_test_') || 'Clerk secret must start with sk_test_',
     }));
 
-  const instanceId = await ensureInstanceIdAuthorized({
+  const instanceId = await getInstanceId({
     clerkSecret,
-    migrationsApiBaseUrl,
-  });
-
-  const resendEmail = await getResendEmailFrom(
-    clerkSecret,
-    migrationsApiBaseUrl,
-  );
-
-  const resendApiKey = await getNewResendApiToken({
-    clerkSecret,
-    migrationsApiBaseUrl,
+    clerkApiBaseUrl,
   });
 
   const useTurso = await select({
@@ -146,8 +154,7 @@ export default async function init(inputClerkSecret?: string) {
     instanceId,
     tursoDbUrl,
     tursoDbToken,
-    resendApiKey,
-    resendEmail,
+    clerkApiBaseUrl,
     githubId,
     githubToken,
   });
@@ -164,8 +171,7 @@ async function wipeAndWriteEnv({
   instanceId,
   tursoDbUrl,
   tursoDbToken,
-  resendApiKey,
-  resendEmail,
+  clerkApiBaseUrl,
   githubId,
   githubToken,
 }: {
@@ -175,8 +181,7 @@ async function wipeAndWriteEnv({
   instanceId: string;
   tursoDbUrl: string;
   tursoDbToken: string | undefined;
-  resendApiKey: string;
-  resendEmail: string;
+  clerkApiBaseUrl: string;
   githubId: string | null;
   githubToken: string | null;
 }) {
@@ -190,10 +195,9 @@ async function wipeAndWriteEnv({
     `CLERK_SECRET_KEY=${clerkSecret}`,
     `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${clerkPublishableKey}`,
     `NEXT_PUBLIC_CLERK_INSTANCE_ID=${instanceId}`,
+    `NEXT_PUBLIC_CLERK_API_URL=${clerkApiBaseUrl}`,
     `TURSO_DATABASE_URL=${tursoDbUrl}`,
     `${tursoDbToken ? `TURSO_AUTH_TOKEN=${tursoDbToken}` : '# TURSO_AUTH_TOKEN='}`,
-    `RESEND_API_KEY=${resendApiKey}`,
-    `RESEND_EMAIL_FROM=${resendEmail}`,
     `AUTH_SECRET=${authSecret}`,
     `${githubId ? `AUTH_GITHUB_ID=${githubId}` : '# AUTH_GITHUB_ID='}`,
     `${githubToken ? `AUTH_GITHUB_SECRET=${githubToken}` : '# AUTH_GITHUB_SECRET='}`,
@@ -216,91 +220,42 @@ async function wipeAndWriteEnv({
   }
 }
 
-async function ensureInstanceIdAuthorized({
+const getInstanceId = async ({
   clerkSecret,
-  migrationsApiBaseUrl,
+  clerkApiBaseUrl,
 }: {
   clerkSecret: string;
-  migrationsApiBaseUrl: string;
-}): Promise<string> {
-  const canUsePlaygroundApi = await fetch(
-    `${migrationsApiBaseUrl}/migrations/playground`,
-    {
-      headers: {
-        Authorization: `Bearer ${clerkSecret}`,
-      },
-    },
-  );
-
-  if (!canUsePlaygroundApi.ok) {
-    if (canUsePlaygroundApi.status === 403) {
-      const data = await canUsePlaygroundApi.json();
-      throw new Error(data.error);
-    } else {
-      throw new Error(
-        `Could not access the playground API. Status: ${canUsePlaygroundApi.status}`,
-      );
-    }
-  }
-
+  clerkApiBaseUrl: string;
+}) => {
   const responseSchema = z.object({
-    instance_id: z.string(),
+    keys: z.array(
+      z.object({
+        kid: z.string(),
+      }),
+    ),
   });
 
-  const data = responseSchema.parse(await canUsePlaygroundApi.json());
-  return data.instance_id;
-}
-
-async function getResendEmailFrom(
-  clerkSecret: string,
-  migrationsApiBaseUrl: string,
-) {
-  const response = await fetch(
-    `${migrationsApiBaseUrl}/migrations/playground/get-resend-from`,
-    {
-      headers: {
-        Authorization: `Bearer ${clerkSecret}`,
-      },
+  const response = await fetch(`${clerkApiBaseUrl}/v1/jwks`, {
+    headers: {
+      Authorization: `Bearer ${clerkSecret}`,
     },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to get Resend email from: ${response.statusText}`);
-  }
-
-  const responseSchema = z.object({
-    email: z.string(),
   });
 
-  const data = responseSchema.parse(await response.json());
-  return data.email;
-}
+  const status = response.status;
 
-async function getNewResendApiToken({
-  clerkSecret,
-  migrationsApiBaseUrl,
-}: {
-  clerkSecret: string;
-  migrationsApiBaseUrl: string;
-}) {
-  const response = await fetch(
-    `${migrationsApiBaseUrl}/migrations/playground/create-resend-api-key`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${clerkSecret}`,
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to create Resend API key: ${response.statusText}`);
+  if (status !== 200) {
+    throw new Error(`Failed to get instance ID: ${status}`);
   }
-  const responseSchema = z.object({
-    token: z.string(),
-  });
 
-  const data = responseSchema.parse(await response.json());
-  return data.token;
-}
+  const json = await response.json();
+
+  const data = responseSchema.parse(json);
+
+  const kid = data.keys[0].kid;
+
+  if (!kid) {
+    throw new Error('Failed to get instance ID');
+  }
+
+  return kid;
+};

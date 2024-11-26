@@ -1,25 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { z } from 'zod';
 
-const userSchema = z.discriminatedUnion('mark_active', [
-  z.object({
-    mark_active: z.literal(true),
-    external_id: z.string(),
-  }),
-  z.object({
-    mark_active: z.literal(false),
-    external_id: z.undefined(),
-  }),
-]);
+type ClientReqBody = {
+  is_signed_into_clerk?: boolean;
+};
 
-const clientReqBodySchema = z.object({
-  is_signed_into_clerk: z.boolean().optional(),
-  browser_id: z.string().optional(),
-});
-
-type ClientReqBody = z.infer<typeof clientReqBodySchema>;
-
-type UserData = z.infer<typeof userSchema>;
+type UserData = {
+  external_id?: string;
+  mark_stale?: boolean;
+};
 
 export const addActiveUserHandler = (
   getUserData: () => Promise<UserData> | UserData,
@@ -27,23 +15,21 @@ export const addActiveUserHandler = (
   return async (request: NextRequest) => {
     try {
       const userData = await getUserData();
-      const validatedData = userSchema.parse(userData);
 
-      let clientReqBody: ClientReqBody | null = null;
+      const validatedData = {
+        external_id: userData.external_id,
+        mark_stale: userData.mark_stale,
+      };
 
-      try {
-        clientReqBody = clientReqBodySchema.parse(await request.json());
-      } catch (error) {}
-
-      if (!validatedData.mark_active) {
+      if (!validatedData.external_id || !validatedData.mark_stale) {
         return NextResponse.json(
-          { message: 'No action required when mark_active is false' },
-          { status: 201 },
+          { message: 'No action needed' },
+          { status: 200 },
         );
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_HONO_API_URL}/v1/migrations/add-active-user`,
+        `${process.env.NEXT_PUBLIC_HONO_API_URL}/v1/migrations/active-user`,
         {
           method: 'POST',
           headers: {
@@ -52,17 +38,23 @@ export const addActiveUserHandler = (
           },
           body: JSON.stringify({
             external_id: validatedData.external_id,
-            is_signed_into_clerk: clientReqBody?.is_signed_into_clerk,
-            browser_id: clientReqBody?.browser_id,
           }),
         },
       );
 
       const data = await response.json();
-      return NextResponse.json(data, { status: response.status });
+      return NextResponse.json(
+        {
+          markedStale: data.marked_stale,
+          message: data.message,
+          clerkUserId: data.clerk_user_id ?? null,
+          signInToken: data.sign_in_token ?? null,
+        },
+        { status: response.status },
+      );
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json({ error: error.errors }, { status: 400 });
+      if (error instanceof Error && error.message.startsWith('Invalid')) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
       }
       console.error('Error adding active user:', error);
       return NextResponse.json(

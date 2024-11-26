@@ -10,18 +10,15 @@ import { Icons } from '@/components/icons';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUserById } from '@/db/query/User';
-import Link from 'next/link';
 import EditAccountForm from './_Components/EditProfileForm';
 import DeleteAccount from './_Components/DeleteAccountButton';
 import LinkAccountButton from './_Components/LinkAccountButton';
 import UnlinkAccountButton from './_Components/UnlinkAccountButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, KeyRound } from 'lucide-react';
-import AddPasswordButton from './_Components/AddPasswordButton';
 import { User as DefaultUser } from 'next-auth';
 
 import type { Metadata } from 'next';
-import DisableTwoFactorButton from './_Components/DisableTwoFactorButton';
 
 export async function generateMetadata(): Promise<Metadata | undefined> {
   const session = await auth();
@@ -128,28 +125,8 @@ export default async function Dashboard() {
                     </p>
                   </div>
                 </div>
-                {userData?.isTotpEnabled ? (
-                  <DisableTwoFactorButton userId={user?.id!} />
-                ) : (
-                  <Link href='/profile/two-factor'>
-                    <Button size='sm'>Enable 2FA</Button>
-                  </Link>
-                )}
               </div>
               <div className='mt-8 flex flex-col justify-center gap-4 border-t-4 pt-8 sm:flex-row'>
-                {accounts?.includes('email') ? (
-                  <Link href='/profile/change-password'>
-                    <Button
-                      size='sm'
-                      className='w-full bg-sky-400 text-black hover:bg-sky-600 dark:bg-sky-400 dark:hover:bg-sky-600'
-                      type='submit'
-                    >
-                      Change Password
-                    </Button>
-                  </Link>
-                ) : (
-                  <AddPasswordButton email={user?.email!} />
-                )}
                 <DeleteAccount userId={user?.id!} />
               </div>
             </div>

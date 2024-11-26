@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useAuth, useSignIn } from '@clerk/nextjs';
 import { z } from 'zod';
 
@@ -9,31 +8,19 @@ const responseSchema = z.object({
   sign_in_token: z.string().optional(),
 });
 
-export const ClerkMigrationsWrapper = ({
+export const MigrationHelper = ({
   children,
-  sendHeartbeat,
   activeUserUrl,
 }: {
   children: React.ReactNode;
-  sendHeartbeat: boolean;
   activeUserUrl: string;
 }) => {
   const [error, setError] = useState<string | null>(null);
   const { isSignedIn, userId, signOut } = useAuth();
   const { signIn, setActive } = useSignIn();
 
-  const getBrowserId = useCallback(() => {
-    let browserId = localStorage.getItem('clerk_migrations_browser_id');
-    if (!browserId) {
-      browserId = uuidv4();
-      localStorage.setItem('clerk_migrations_browser_id', browserId);
-    }
-    return browserId;
-  }, []);
-
   const addActiveUser = useCallback(async () => {
     try {
-      const browserId = getBrowserId();
       const response = await fetch(activeUserUrl, {
         method: 'POST',
         headers: {
@@ -41,7 +28,6 @@ export const ClerkMigrationsWrapper = ({
         },
         body: JSON.stringify({
           is_signed_into_clerk: isSignedIn ?? false,
-          browser_id: browserId,
         }),
       });
 
@@ -92,19 +78,13 @@ export const ClerkMigrationsWrapper = ({
         setError('An unknown error occurred');
       }
     }
-  }, [activeUserUrl, isSignedIn, userId, getBrowserId, signOut, signIn]);
+  }, [activeUserUrl, isSignedIn, userId, signOut, signIn]);
 
   useEffect(() => {
-    if (sendHeartbeat) {
-      addActiveUser(); // Initial request
-      const interval = setInterval(addActiveUser, 5000); // Subsequent requests every 5 seconds
-      return () => clearInterval(interval); // Cleanup on component unmount or when sendHeartbeat changes to false
-    }
-  }, [sendHeartbeat, addActiveUser]);
-
-  if (!sendHeartbeat) {
-    return <>{children}</>;
-  }
+    addActiveUser(); // Initial request
+    const interval = setInterval(addActiveUser, 5000); // Subsequent requests every 5 seconds
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [addActiveUser]);
 
   if (error) {
     return <div>{error}</div>;

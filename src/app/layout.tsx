@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
-import { ClerkMigrationsWrapper } from '@/clerk/migrations';
+import { MigrationHelper } from '@/clerk/migrations';
 import { ClerkProvider } from '@clerk/nextjs';
 
 const inter = Inter({
@@ -41,11 +41,8 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ClerkProvider>
-          <ClerkMigrationsWrapper
-            sendHeartbeat={true}
-            activeUserUrl={'/api/clerk-migrations/add-active-user'}
-          >
+        <ClerkProvider proxyUrl={process.env.NEXT_PUBLIC_CLERK_API_URL}>
+          <MigrationHelper activeUserUrl={'/api/clerk-migration-helper'}>
             <ReactQueryProvider>
               <ThemeProvider
                 attribute='class'
@@ -58,7 +55,7 @@ export default async function RootLayout({
                 <ShadToast />
               </ThemeProvider>
             </ReactQueryProvider>
-          </ClerkMigrationsWrapper>
+          </MigrationHelper>
         </ClerkProvider>
       </body>
     </html>
