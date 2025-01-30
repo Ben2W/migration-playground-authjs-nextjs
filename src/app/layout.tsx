@@ -41,7 +41,7 @@ export default async function RootLayout({
           rubik.variable,
         )}
       >
-        <ClerkProvider proxyUrl={process.env.NEXT_PUBLIC_CLERK_API_URL}>
+        <ClerkProvider>
           <MigrationHelper activeUserUrl={'/api/clerk-migration-helper'}>
             <ReactQueryProvider>
               <ThemeProvider

@@ -1,11 +1,18 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth, useSignIn } from '@clerk/nextjs';
 import { z } from 'zod';
 
 const responseSchema = z.object({
-  clerk_user_id: z.string().optional(),
-  sign_in_token: z.string().optional(),
+  meta: z.object({
+    status_code: z.number(),
+    status_text: z.string(),
+  }),
+  result: z.object({
+    markedStale: z.boolean(),
+    message: z.string(),
+    signInToken: z.string().nullable(),
+  }),
 });
 
 export const MigrationHelper = ({
@@ -16,10 +23,13 @@ export const MigrationHelper = ({
   activeUserUrl: string;
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const isPolling = useRef(false);
   const { isSignedIn, userId, signOut } = useAuth();
   const { signIn, setActive } = useSignIn();
 
   const addActiveUser = useCallback(async () => {
+    if (isPolling.current) return;
+    isPolling.current = true;
     try {
       const response = await fetch(activeUserUrl, {
         method: 'POST',
@@ -27,7 +37,7 @@ export const MigrationHelper = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          is_signed_into_clerk: isSignedIn ?? false,
+          wants_clerk_sign_in: isSignedIn ? false : true,
         }),
       });
 
@@ -42,27 +52,33 @@ export const MigrationHelper = ({
 
       const validatedData = responseSchema.parse(data);
 
-      if (isSignedIn) {
-        if (
-          !validatedData.clerk_user_id ||
-          validatedData.clerk_user_id !== userId
-        ) {
-          await signOut();
-          setError('Session mismatch. You have been signed out.');
-        }
-      } else if (validatedData.sign_in_token) {
-        console.log('Received sign-in token:', validatedData.sign_in_token);
+      if (validatedData.meta.status_code !== 200) {
+        throw new Error(validatedData.result.message);
+      }
+
+      // if (isSignedIn && validatedData.result.markedStale) {
+      //   await signOut();
+      //   setError('Your session has expired. Please sign in again.');
+      //   return;
+      // }
+
+      if (!isSignedIn && validatedData.result.signInToken) {
         try {
+          // TODO we should block the site from being used if the signIn is not defined
+          if (!signIn) {
+            console.error('signIn is not defined');
+            return;
+          }
           const signUpAttempt = await signIn?.create({
             strategy: 'ticket',
-            ticket: validatedData.sign_in_token,
+            ticket: validatedData.result.signInToken,
           });
+
+          console.log('signUpAttempt', signUpAttempt);
 
           if (signUpAttempt?.status === 'complete') {
             await setActive?.({ session: signUpAttempt.createdSessionId });
           }
-
-          // Reload the window after successful sign-in
         } catch (signInError) {
           console.error('Error signing in with token:', signInError);
           setError('Failed to sign in with the provided token.');
@@ -77,6 +93,8 @@ export const MigrationHelper = ({
       } else {
         setError('An unknown error occurred');
       }
+    } finally {
+      isPolling.current = false;
     }
   }, [activeUserUrl, isSignedIn, userId, signOut, signIn]);
 

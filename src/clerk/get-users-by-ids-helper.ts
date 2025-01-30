@@ -43,16 +43,6 @@ export const getUsersByIdsHandler = (
   getUsersData: (input: { external_ids: string[] }) => Promise<ExternalUser[]>,
 ) => {
   return async (req: NextRequest) => {
-    // Authorize the request
-    const authHeader = req.headers.get('Authorization');
-    if (
-      !authHeader ||
-      !authHeader.startsWith('Bearer ') ||
-      authHeader.split(' ')[1] !== process.env.CLERK_SECRET_KEY
-    ) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     try {
       const body = await req.json();
       const { external_ids } = inputSchema.parse(body);

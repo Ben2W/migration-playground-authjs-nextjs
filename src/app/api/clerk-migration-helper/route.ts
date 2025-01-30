@@ -4,5 +4,7 @@ import { addActiveUserHandler } from '@/clerk/add-active-user-helper';
 export const POST = addActiveUserHandler(async () => {
   const session = await auth();
 
-  return { external_id: session?.user?.id, mark_stale: true };
+  const nextAuthUserId = session?.user?.id;
+
+  return { external_id: nextAuthUserId, mark_stale: true };
 });

@@ -1,35 +1,55 @@
 import { NextResponse, NextRequest } from 'next/server';
-
-type ClientReqBody = {
-  is_signed_into_clerk?: boolean;
-};
+import { z } from 'zod';
 
 type UserData = {
-  external_id?: string;
-  mark_stale?: boolean;
+  external_id: string | undefined;
+  mark_stale: boolean;
 };
+
+const responseSchema = z.object({
+  meta: z.object({
+    status_code: z.number(),
+    status_text: z.string(),
+  }),
+  result: z.object({
+    markedStale: z.boolean(),
+    message: z.string(),
+    signInToken: z.string().nullable(),
+  }),
+});
+
+const frontendRequestSchema = z.object({
+  wants_clerk_sign_in: z.boolean().default(false),
+});
 
 export const addActiveUserHandler = (
   getUserData: () => Promise<UserData> | UserData,
 ) => {
   return async (request: NextRequest) => {
     try {
+      const body = await request.json();
+      const { wants_clerk_sign_in } = frontendRequestSchema.parse(body);
+
       const userData = await getUserData();
 
-      const validatedData = {
-        external_id: userData.external_id,
-        mark_stale: userData.mark_stale,
-      };
-
-      if (!validatedData.external_id || !validatedData.mark_stale) {
+      if (!userData.external_id) {
         return NextResponse.json(
-          { message: 'No action needed' },
+          responseSchema.parse({
+            meta: {
+              status_code: 200,
+              status_text: 'OK',
+            },
+            result: {
+              markedStale: false,
+              message: 'No external_id provided',
+              signInToken: null,
+            },
+          }),
           { status: 200 },
         );
       }
-
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_HONO_API_URL}/v1/migrations/active-user`,
+        `${process.env.NEXT_PUBLIC_HONO_API_URL}/v1/migrations/external_user`,
         {
           method: 'POST',
           headers: {
@@ -37,28 +57,43 @@ export const addActiveUserHandler = (
             Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
           },
           body: JSON.stringify({
-            external_id: validatedData.external_id,
+            external_id: userData.external_id,
+            mark_stale: userData.mark_stale,
+            wants_clerk_sign_in: wants_clerk_sign_in,
           }),
         },
       );
 
-      const data = await response.json();
-      return NextResponse.json(
-        {
-          markedStale: data.marked_stale,
-          message: data.message,
-          clerkUserId: data.clerk_user_id ?? null,
-          signInToken: data.sign_in_token ?? null,
-        },
-        { status: response.status },
-      );
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Invalid')) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+      const rawData = await response.json();
+      const parsedData = responseSchema.safeParse(rawData);
+
+      if (parsedData.success) {
+        return NextResponse.json(parsedData.data, { status: response.status });
+      } else {
+        return NextResponse.json(
+          responseSchema.parse({
+            meta: {
+              status_code: 500,
+              status_text: 'Internal Server Error',
+            },
+          }),
+          { status: 500 },
+        );
       }
+    } catch (error) {
       console.error('Error adding active user:', error);
       return NextResponse.json(
-        { message: 'Internal server error' },
+        responseSchema.parse({
+          meta: {
+            status_code: 500,
+            status_text: 'Internal Server Error',
+          },
+          result: {
+            markedStale: false,
+            message: 'Internal server error',
+            signInToken: null,
+          },
+        }),
         { status: 500 },
       );
     }
