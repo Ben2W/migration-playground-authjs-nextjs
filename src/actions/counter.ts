@@ -1,12 +1,12 @@
 'use server';
 
-import { auth } from '@/auth';
+import { auth as nextAuth } from '@/auth';
 import { db } from '@/db';
 import { count } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function increaseCount() {
-  const session = await auth();
+  const session = await nextAuth();
 
   if (!session || !session.user || !session.user.id) {
     throw new Error('User not authenticated');
@@ -24,7 +24,7 @@ export async function increaseCount() {
 }
 
 export async function getCount() {
-  const session = await auth();
+  const session = await nextAuth();
 
   if (!session || !session.user || !session.user.id) {
     throw new Error('User not authenticated');
