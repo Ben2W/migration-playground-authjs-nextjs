@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
-import { MigrationPoller } from '@/clerk/migrations';
 import { ClerkProvider } from '@clerk/nextjs';
+import ServerMigrationsProvider from '@/clerk/nextappserver_MigrationsProvider';
+import { auth as nextAuth } from '@/auth';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,6 +33,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nextAuthSession = await nextAuth();
   return (
     <html lang='en' suppressHydrationWarning>
       <body
@@ -42,7 +44,7 @@ export default async function RootLayout({
         )}
       >
         <ClerkProvider>
-          <MigrationPoller activeUserUrl={'/api/clerk-migration-helper'}>
+          <ServerMigrationsProvider externalId={nextAuthSession?.user?.id}>
             <ReactQueryProvider>
               <ThemeProvider
                 attribute='class'
@@ -55,7 +57,7 @@ export default async function RootLayout({
                 <ShadToast />
               </ThemeProvider>
             </ReactQueryProvider>
-          </MigrationPoller>
+          </ServerMigrationsProvider>
         </ClerkProvider>
       </body>
     </html>
