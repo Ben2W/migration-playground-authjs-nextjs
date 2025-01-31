@@ -70,6 +70,7 @@ export const MigrationPoller = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [content, setContent] = useState<React.ReactNode>(children);
   const isPolling = useRef(false);
   const { isSignedIn: isSignedInToClerk, isLoaded: isClerkLoaded } = useAuth();
   const { signIn, setActive } = useSignIn();
@@ -77,30 +78,11 @@ export const MigrationPoller = ({
   const { user, isLoaded: isClerkUserLoaded } = useUser();
 
   const externalIdFromUserObject = user?.externalId;
-
   const isSessionSynced =
     externalIdFromUserObject === externalIdForTokenRequests;
-
-  const isSignedInToExternalAuth = externalIdForTokenRequests ? true : false;
-
+  const isSignedInToExternalAuth = Boolean(externalIdForTokenRequests);
   const isClerkReady = isClerkLoaded && isClerkUserLoaded;
-
   const showSyncMessage = isSyncing;
-
-  let content: React.ReactNode;
-  if (error) {
-    content = <div>{error}</div>;
-  } else if (showSyncMessage) {
-    content = <div>Syncing with clerk...</div>;
-  } else if (blockRenderingUntilSessionIsSynced) {
-    if (!isClerkReady) {
-      content = <div>Clerk is not ready</div>;
-    } else if (!isSessionSynced) {
-      content = <div>Syncing with clerk...</div>;
-    }
-  } else {
-    content = children;
-  }
 
   const clerkSync = useCallback(
     async ({ blockRendering = true } = {}) => {
@@ -163,7 +145,19 @@ export const MigrationPoller = ({
         }
       }
     },
-    [onActiveUser, signIn, setActive, isSignedInToExternalAuth],
+    [
+      onActiveUser,
+      signIn,
+      setActive,
+      isSignedInToExternalAuth,
+      isClerkLoaded,
+      isSignedInToClerk,
+      signOut,
+      isClerkReady,
+      externalIdForTokenRequests,
+      isSessionSynced,
+      markStaleOnActiveUser,
+    ],
   );
 
   const addActiveUser = useCallback(async () => {
@@ -185,10 +179,35 @@ export const MigrationPoller = ({
   }, [clerkSync]);
 
   useEffect(() => {
-    addActiveUser();
-    const interval = setInterval(addActiveUser, 5000);
+    void addActiveUser();
+    const interval = setInterval(() => {
+      void addActiveUser();
+    }, 5000);
     return () => clearInterval(interval);
   }, [addActiveUser]);
+
+  useEffect(() => {
+    if (error) {
+      setContent(<div>{error}</div>);
+    } else if (showSyncMessage) {
+      setContent(<div>Syncing with clerk...</div>);
+    } else if (blockRenderingUntilSessionIsSynced) {
+      if (!isSessionSynced) {
+        setContent(<div>Syncing with clerk...</div>);
+      } else {
+        setContent(children);
+      }
+    } else {
+      setContent(children);
+    }
+  }, [
+    error,
+    showSyncMessage,
+    blockRenderingUntilSessionIsSynced,
+    isClerkReady,
+    isSessionSynced,
+    children,
+  ]);
 
   const contextValue = {
     isSyncing,

@@ -19,7 +19,6 @@ import { Edit, KeyRound } from 'lucide-react';
 import { User as DefaultUser } from 'next-auth';
 
 import type { Metadata } from 'next';
-import GetCount from './_Components/GetCount';
 import { Counter } from '@/components/counter';
 import { getCount } from '@/actions/counter';
 

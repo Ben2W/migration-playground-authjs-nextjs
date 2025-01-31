@@ -4,6 +4,7 @@ import { users } from '@/db/schema';
 import { inArray } from 'drizzle-orm';
 
 export const POST = getUsersByIdsHandler(async ({ external_ids }) => {
+  // Get user data from old auth system
   const foundUsers = await db
     .select({
       authjs_user_id: users.id,
@@ -15,6 +16,7 @@ export const POST = getUsersByIdsHandler(async ({ external_ids }) => {
     .from(users)
     .where(inArray(users.id, external_ids));
 
+  // Returns the data in the shape clerk expects
   return foundUsers.map((user) => ({
     external_id: user.authjs_user_id,
     first_name: user.name || undefined,
