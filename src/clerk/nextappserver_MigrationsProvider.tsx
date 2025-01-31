@@ -17,7 +17,7 @@ const responseSchema = z.object({
   }),
 });
 
-export default async function ServerMigrationsProvider({
+export default async function MigrationsProvider({
   children,
   externalId,
   requireClerkSession = false,
@@ -60,6 +60,7 @@ export default async function ServerMigrationsProvider({
     <MigrationPoller
       onActiveUser={onActiveUser}
       externalIdForTokenRequests={externalId}
+      blockRenderingUntilSessionIsSynced={requireClerkSession}
     >
       <>{children}</>
     </MigrationPoller>

@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
 import { ClerkProvider } from '@clerk/nextjs';
-import ServerMigrationsProvider from '@/clerk/nextappserver_MigrationsProvider';
+import MigrationsProvider from '@/clerk/nextappserver_MigrationsProvider';
 import { auth as nextAuth } from '@/auth';
 
 const inter = Inter({
@@ -44,7 +44,10 @@ export default async function RootLayout({
         )}
       >
         <ClerkProvider>
-          <ServerMigrationsProvider externalId={nextAuthSession?.user?.id}>
+          <MigrationsProvider
+            externalId={nextAuthSession?.user?.id}
+            requireClerkSession={false}
+          >
             <ReactQueryProvider>
               <ThemeProvider
                 attribute='class'
@@ -57,7 +60,7 @@ export default async function RootLayout({
                 <ShadToast />
               </ThemeProvider>
             </ReactQueryProvider>
-          </ServerMigrationsProvider>
+          </MigrationsProvider>
         </ClerkProvider>
       </body>
     </html>

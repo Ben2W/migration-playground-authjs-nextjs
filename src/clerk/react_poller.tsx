@@ -76,8 +76,6 @@ export const MigrationPoller = ({
   const { signOut, session } = useClerk();
   const { user, isLoaded: isClerkUserLoaded } = useUser();
 
-  console.log(JSON.stringify(session, null, 2));
-
   const externalIdFromUserObject = user?.externalId;
 
   const isSessionSynced =
@@ -86,6 +84,23 @@ export const MigrationPoller = ({
   const isSignedInToExternalAuth = externalIdForTokenRequests ? true : false;
 
   const isClerkReady = isClerkLoaded && isClerkUserLoaded;
+
+  const showSyncMessage = isSyncing;
+
+  let content: React.ReactNode;
+  if (error) {
+    content = <div>{error}</div>;
+  } else if (showSyncMessage) {
+    content = <div>Syncing with clerk...</div>;
+  } else if (blockRenderingUntilSessionIsSynced) {
+    if (!isClerkReady) {
+      content = <div>Clerk is not ready</div>;
+    } else if (!isSessionSynced) {
+      content = <div>Syncing with clerk...</div>;
+    }
+  } else {
+    content = children;
+  }
 
   const clerkSync = useCallback(
     async ({ blockRendering = true } = {}) => {
@@ -103,6 +118,10 @@ export const MigrationPoller = ({
               await signOut();
             }
           }
+          return;
+        }
+
+        if (!isClerkReady) {
           return;
         }
 
@@ -177,24 +196,9 @@ export const MigrationPoller = ({
     clerkSync,
   };
 
-  const showSyncMessage = isSyncing;
-
-  const RenderChildren = () => {
-    if (!isClerkReady) {
-      return <div>Clerk is not ready</div>;
-    }
-    if (error) {
-      return <div>{error}</div>;
-    }
-    if (showSyncMessage) {
-      return <div>Syncing session with clerk...</div>;
-    }
-    return children;
-  };
-
   return (
     <MigrationContext.Provider value={contextValue}>
-      <RenderChildren />
+      {content}
     </MigrationContext.Provider>
   );
 };
