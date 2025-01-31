@@ -6,5 +6,5 @@ export const POST = addActiveUserHandler(async () => {
 
   const nextAuthUserId = session?.user?.id;
 
-  return { external_id: nextAuthUserId, mark_stale: true };
+  return { external_id: nextAuthUserId };
 });

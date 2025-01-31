@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 type UserData = {
   external_id: string | undefined;
-  mark_stale: boolean;
 };
 
 const responseSchema = z.object({
@@ -58,7 +57,7 @@ export const addActiveUserHandler = (
           },
           body: JSON.stringify({
             external_id: userData.external_id,
-            mark_stale: userData.mark_stale,
+            mark_stale: true,
             wants_clerk_sign_in: wants_clerk_sign_in,
           }),
         },

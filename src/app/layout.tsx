@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Inter, Rubik } from 'next/font/google';
 import ReactQueryProvider from '@/components/ReactQueryProvider';
-import { MigrationHelper } from '@/clerk/migrations';
+import { MigrationPoller } from '@/clerk/migrations';
 import { ClerkProvider } from '@clerk/nextjs';
 
 const inter = Inter({
@@ -42,7 +42,7 @@ export default async function RootLayout({
         )}
       >
         <ClerkProvider>
-          <MigrationHelper activeUserUrl={'/api/clerk-migration-helper'}>
+          <MigrationPoller activeUserUrl={'/api/clerk-migration-helper'}>
             <ReactQueryProvider>
               <ThemeProvider
                 attribute='class'
@@ -55,7 +55,7 @@ export default async function RootLayout({
                 <ShadToast />
               </ThemeProvider>
             </ReactQueryProvider>
-          </MigrationHelper>
+          </MigrationPoller>
         </ClerkProvider>
       </body>
     </html>

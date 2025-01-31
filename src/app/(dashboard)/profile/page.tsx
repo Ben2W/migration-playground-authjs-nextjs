@@ -19,6 +19,12 @@ import { Edit, KeyRound } from 'lucide-react';
 import { User as DefaultUser } from 'next-auth';
 
 import type { Metadata } from 'next';
+import GetCount from './_Components/GetCount';
+import { Counter } from '@/components/counter';
+import { getCount } from '@/actions/counter';
+
+// Add export const dynamic = 'force-dynamic' to force rerender on each request
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata | undefined> {
   const session = await auth();
@@ -51,6 +57,12 @@ export default async function Dashboard() {
     redirect('/sign-in');
   }
 
+  const count = await getCount();
+
+  const CountComponent = () => {
+    return <div>Count: {count}</div>;
+  };
+
   let accounts = userData.accounts.map((account) => account.provider);
 
   const GithubLinkButton = () => {
@@ -81,6 +93,8 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
+              <CountComponent />
+
               <div className='flex flex-row items-center gap-2'>
                 <Avatar>
                   <AvatarImage src={user.image!} alt={user.name!} />
